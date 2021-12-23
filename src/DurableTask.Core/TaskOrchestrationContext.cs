@@ -30,6 +30,7 @@ namespace DurableTask.Core
     {
         private readonly IDictionary<int, OpenTaskInfo> openTasks;
         private readonly IDictionary<int, OrchestratorAction> orchestratorActionsMap;
+
         private OrchestrationCompleteOrchestratorAction continueAsNew;
         private bool executionCompletedOrTerminated;
         private int idCounter;
@@ -64,18 +65,16 @@ namespace DurableTask.Core
             continueAsNew = null;
         }
 
-        public override async Task<TResult> ScheduleTask<TResult>(string name, string version,
-            params object[] parameters)
+        public override async Task<TResult> ScheduleTask<TResult>(string name, string version, string apiName, int actionId = 0, params object[] parameters)
         {
-            TResult result = await ScheduleTaskToWorker<TResult>(name, version, null, parameters);
-
+            TResult result = await ScheduleTaskToWorker<TResult>(name, version, null, apiName, actionId, parameters);
             return result;
         }
 
         public async Task<TResult> ScheduleTaskToWorker<TResult>(string name, string version, string taskList,
-            params object[] parameters)
+            string apiName, int actionId, params object[] parameters)
         {
-            object result = await ScheduleTaskInternal(name, version, taskList, typeof(TResult), parameters);
+            object result = await ScheduleTaskInternal(name, version, taskList, typeof(TResult), apiName, actionId, parameters);
 
             if (result == null)
             {
@@ -86,7 +85,7 @@ namespace DurableTask.Core
         }
 
         public async Task<object> ScheduleTaskInternal(string name, string version, string taskList, Type resultType,
-            params object[] parameters)
+            string apiName, int actionId, params object[] parameters)
         {
             int id = this.idCounter++;
             string serializedInput = this.MessageDataConverter.Serialize(parameters);
@@ -97,6 +96,8 @@ namespace DurableTask.Core
                 Version = version,
                 Tasklist = taskList,
                 Input = serializedInput,
+                APIName = apiName,
+                ActionId = actionId,
             };
 
             this.orchestratorActionsMap.Add(id, scheduleTaskTaskAction);
@@ -228,13 +229,20 @@ namespace DurableTask.Core
             return CreateTimer(fireAt, state, CancellationToken.None);
         }
 
-        public override async Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken)
+        public override Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken)
+        {
+            return CreateTimer(fireAt, state, CancellationToken.None, "TBD", -1);
+        }
+
+        public override async Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken, string apiName, int actionId)
         {
             int id = this.idCounter++;
             var createTimerOrchestratorAction = new CreateTimerOrchestratorAction
             {
                 Id = id,
                 FireAt = fireAt,
+                APIName = apiName,
+                ActionId = actionId,
             };
 
             this.orchestratorActionsMap.Add(id, createTimerOrchestratorAction);
@@ -290,6 +298,7 @@ namespace DurableTask.Core
             }
 
             this.orchestratorActionsMap.Remove(taskId);
+
         }
 
         public void HandleTimerCreatedEvent(TimerCreatedEvent timerCreatedEvent)
@@ -410,6 +419,7 @@ namespace DurableTask.Core
             {
                 LogDuplicateEvent("TaskCompleted", completedEvent, taskId);
             }
+
         }
 
         public void HandleTaskFailedEvent(TaskFailedEvent failedEvent)

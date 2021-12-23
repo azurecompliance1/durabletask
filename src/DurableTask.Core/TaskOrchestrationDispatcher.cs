@@ -472,7 +472,9 @@ namespace DurableTask.Core
                     // finish up processing of the work item
                     if (!continuedAsNew && runtimeState.Events.Last().EventType != EventType.OrchestratorCompleted)
                     {
-                        runtimeState.AddEvent(new OrchestratorCompletedEvent(-1));
+                        var orchCompletedEvent = new OrchestratorCompletedEvent(-1);
+                        orchCompletedEvent.ActionString = runtimeState.OrchestrationInstance.Actions;
+                        runtimeState.AddEvent(orchCompletedEvent);
                     }
 
                     if (isCompleted)
@@ -512,7 +514,9 @@ namespace DurableTask.Core
                                 }
                             }
 
-                            runtimeState.AddEvent(new OrchestratorCompletedEvent(-1));
+                            var orchCompletedEvent = new OrchestratorCompletedEvent(-1);
+                            orchCompletedEvent.ActionString = runtimeState.OrchestrationInstance.Actions;
+                            runtimeState.AddEvent(orchCompletedEvent);
                             workItem.OrchestrationRuntimeState = runtimeState;
 
                             TaskOrchestration newOrchestration = this.objectManager.GetObject(
@@ -796,7 +800,9 @@ namespace DurableTask.Core
             {
                 Name = scheduleTaskOrchestratorAction.Name,
                 Version = scheduleTaskOrchestratorAction.Version,
-                Input = scheduleTaskOrchestratorAction.Input
+                Input = scheduleTaskOrchestratorAction.Input,
+                APIName = scheduleTaskOrchestratorAction.APIName,
+                ActionId = scheduleTaskOrchestratorAction.ActionId,
             };
 
             taskMessage.Event = scheduledEvent;
@@ -807,7 +813,9 @@ namespace DurableTask.Core
                 scheduledEvent = new TaskScheduledEvent(scheduleTaskOrchestratorAction.Id)
                 {
                     Name = scheduleTaskOrchestratorAction.Name,
-                    Version = scheduleTaskOrchestratorAction.Version
+                    Version = scheduleTaskOrchestratorAction.Version,
+                    APIName = scheduleTaskOrchestratorAction.APIName,
+                    ActionId = scheduleTaskOrchestratorAction.ActionId,
                 };
             }
 
@@ -828,7 +836,9 @@ namespace DurableTask.Core
 
             var timerCreatedEvent = new TimerCreatedEvent(createTimerOrchestratorAction.Id)
             {
-                FireAt = createTimerOrchestratorAction.FireAt
+                FireAt = createTimerOrchestratorAction.FireAt,
+                APIName = createTimerOrchestratorAction.APIName,
+                ActionId = createTimerOrchestratorAction.ActionId,
             };
 
             runtimeState.AddEvent(timerCreatedEvent);
@@ -836,7 +846,9 @@ namespace DurableTask.Core
             taskMessage.Event = new TimerFiredEvent(-1)
             {
                 TimerId = createTimerOrchestratorAction.Id,
-                FireAt = createTimerOrchestratorAction.FireAt
+                FireAt = createTimerOrchestratorAction.FireAt,
+                APIName = createTimerOrchestratorAction.APIName,
+                ActionId = createTimerOrchestratorAction.ActionId,
             };
 
             this.logHelper.CreatingTimer(
