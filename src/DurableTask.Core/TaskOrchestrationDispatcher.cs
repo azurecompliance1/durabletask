@@ -34,6 +34,7 @@ namespace DurableTask.Core
     /// </summary>
     public class TaskOrchestrationDispatcher
     {
+        readonly DataConverter DataConverter;
         static readonly Task CompletedTask = Task.FromResult(0);
 
         readonly INameVersionObjectManager<TaskOrchestration> objectManager;
@@ -49,13 +50,15 @@ namespace DurableTask.Core
             INameVersionObjectManager<TaskOrchestration> objectManager,
             DispatchMiddlewarePipeline dispatchPipeline,
             LogHelper logHelper,
-            ErrorPropagationMode errorPropagationMode)
+            ErrorPropagationMode errorPropagationMode,
+            DataConverter dataConverter)
         {
             this.objectManager = objectManager ?? throw new ArgumentNullException(nameof(objectManager));
             this.orchestrationService = orchestrationService ?? throw new ArgumentNullException(nameof(orchestrationService));
             this.dispatchPipeline = dispatchPipeline ?? throw new ArgumentNullException(nameof(dispatchPipeline));
             this.logHelper = logHelper ?? throw new ArgumentNullException(nameof(logHelper));
             this.errorPropagationMode = errorPropagationMode;
+            this.DataConverter = dataConverter;
 
             this.dispatcher = new WorkItemDispatcher<TaskOrchestrationWorkItem>(
                 "TaskOrchestrationDispatcher",
@@ -570,7 +573,7 @@ namespace DurableTask.Core
             // Get the TaskOrchestration implementation. If it's not found, it either means that the developer never
             // registered it (which is an error, and we'll throw for this further down) or it could be that some custom
             // middleware (e.g. out-of-process execution middleware) is intended to implement the orchestration logic.
-            TaskOrchestration? taskOrchestration = this.objectManager.GetObject(runtimeState.Name, runtimeState.Version!);
+            TaskOrchestration? taskOrchestration = this.objectManager.GetObject(runtimeState.Name, runtimeState.Version!, this.DataConverter);
 
             var dispatchContext = new DispatchMiddlewareContext();
             dispatchContext.SetProperty(runtimeState.OrchestrationInstance);
@@ -604,6 +607,7 @@ namespace DurableTask.Core
                     runtimeState,
                     taskOrchestration,
                     this.orchestrationService.EventBehaviourForContinueAsNew,
+                    this.DataConverter,
                     this.errorPropagationMode);
                 OrchestratorExecutionResult resultFromOrchestrator = executor.Execute();
                 dispatchContext.SetProperty(resultFromOrchestrator);
