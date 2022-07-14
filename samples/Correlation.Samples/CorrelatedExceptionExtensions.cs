@@ -11,22 +11,22 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace Correlation.Samples
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-    using DurableTask.Core;
-    using Microsoft.ApplicationInsights.DataContracts;
+namespace Correlation.Samples;
 
-    public static class CorrelatedExceptionExtensions
+using System.Diagnostics.Contracts;
+
+using DurableTask.Core;
+
+using Microsoft.ApplicationInsights.DataContracts;
+
+public static class CorrelatedExceptionExtensions
+{
+    public static ExceptionTelemetry CreateExceptionTelemetry(this CorrelatedExceptionDetails e)
     {
-        public static ExceptionTelemetry CreateExceptionTelemetry(this CorrelatedExceptionDetails e)
-        {
-            var exceptionTelemetry = new ExceptionTelemetry(e.Exception);
-            exceptionTelemetry.Context.Operation.Id = e.OperationId;
-            exceptionTelemetry.Context.Operation.ParentId = e.ParentId;
-            return exceptionTelemetry;
-        }
+        Contract.Assume(e is not null);
+        var exceptionTelemetry = new ExceptionTelemetry(e.Exception);
+        exceptionTelemetry.Context.Operation.Id = e.OperationId;
+        exceptionTelemetry.Context.Operation.ParentId = e.ParentId;
+        return exceptionTelemetry;
     }
 }

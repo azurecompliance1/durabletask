@@ -11,30 +11,26 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric
+namespace DurableTask.AzureServiceFabric;
+
+using System;
+using System.Fabric;
+
+using DurableTask.AzureServiceFabric.Tracing;
+
+internal static class ExceptionUtilities
 {
-    using System;
-    using System.Fabric;
+    public static bool IsRetryableFabricException(Exception e) => e is TimeoutException || e is FabricTransientException;
 
-    using DurableTask.AzureServiceFabric.Tracing;
-
-    static class ExceptionUtilities
+    public static void LogReliableCollectionException(string uniqueIdentifier, int attemptNumber, Exception e, bool isTransient)
     {
-        public static bool IsRetryableFabricException(Exception e)
+        if (isTransient)
         {
-            return e is TimeoutException || e is FabricTransientException;
+            ServiceFabricProviderEventSource.Tracing.RetryableFabricException(uniqueIdentifier, attemptNumber, e.ToString());
         }
-
-        public static void LogReliableCollectionException(string uniqueIdentifier, int attemptNumber, Exception e, bool isTransient)
+        else
         {
-            if (isTransient)
-            {
-                ServiceFabricProviderEventSource.Tracing.RetryableFabricException(uniqueIdentifier, attemptNumber, e.ToString());
-            }
-            else
-            {
-                ServiceFabricProviderEventSource.Tracing.ExceptionInReliableCollectionOperations(uniqueIdentifier, e.ToString());
-            }
+            ServiceFabricProviderEventSource.Tracing.ExceptionInReliableCollectionOperations(uniqueIdentifier, e.ToString());
         }
     }
 }

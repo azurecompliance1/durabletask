@@ -11,35 +11,31 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace Correlation.Samples
+namespace Correlation.Samples;
+
+using System;
+
+public static class StringExtensions
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Text;
-
-    public static class StringExtensions
+    public static TraceParent ToTraceParent(this string traceparent)
     {
-        public static TraceParent ToTraceParent(this string traceparent)
+        if (!string.IsNullOrEmpty(traceparent))
         {
-            if (!string.IsNullOrEmpty(traceparent))
+            var substrings = traceparent.Split('-');
+            if (substrings.Length != 4)
             {
-                var substrings = traceparent.Split('-');
-                if (substrings.Length != 4)
-                {
-                    throw new ArgumentException($"Traceparent doesn't respect the spec. {traceparent}");
-                }
-
-                return new TraceParent
-                {
-                    Version = substrings[0],
-                    TraceId = substrings[1],
-                    SpanId = substrings[2],
-                    TraceFlags = substrings[3]
-                };
+                throw new ArgumentException($"Traceparent doesn't respect the spec. {traceparent}");
             }
 
-            return null;
+            return new TraceParent
+            {
+                Version = substrings[0],
+                TraceId = substrings[1],
+                SpanId = substrings[2],
+                TraceFlags = substrings[3]
+            };
         }
-    }
 
+        return null;
+    }
 }

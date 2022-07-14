@@ -11,161 +11,159 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric.Stores
+namespace DurableTask.AzureServiceFabric.Stores;
+
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+
+using DurableTask.AzureServiceFabric.TaskHelpers;
+using DurableTask.AzureServiceFabric.Tracing;
+using DurableTask.Core;
+using DurableTask.Core.History;
+
+using Microsoft.ServiceFabric.Data;
+
+internal class ScheduledMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using System.Threading;
-    using System.Threading.Tasks;
+    private readonly SessionProvider sessionProvider;
+    private readonly object @lock = new object();
+    private ImmutableSortedSet<Message<Guid, TaskMessageItem>> inMemorySet = ImmutableSortedSet<Message<Guid, TaskMessageItem>>.Empty.WithComparer(TimerFiredEventComparer.Instance);
+    private DateTime nextActivationCheck;
 
-    using DurableTask.Core;
-    using DurableTask.Core.History;
-    using DurableTask.AzureServiceFabric.TaskHelpers;
-    using DurableTask.AzureServiceFabric.Tracing;
-    using Microsoft.ServiceFabric.Data;
+    public ScheduledMessageProvider(IReliableStateManager stateManager, string storeName, SessionProvider sessionProvider, CancellationToken token)
+        : base(stateManager, storeName, token)
+     => this.sessionProvider = sessionProvider;
 
-    class ScheduledMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
+    public override async Task StartAsync()
     {
-        readonly SessionProvider sessionProvider;
-        readonly object @lock = new object();
+        await InitializeStore();
 
-        ImmutableSortedSet<Message<Guid, TaskMessageItem>> inMemorySet = ImmutableSortedSet<Message<Guid, TaskMessageItem>>.Empty.WithComparer(TimerFiredEventComparer.Instance);
-        DateTime nextActivationCheck;
+        var builder = this.inMemorySet.ToBuilder();
 
-        public ScheduledMessageProvider(IReliableStateManager stateManager, string storeName, SessionProvider sessionProvider, CancellationToken token) : base(stateManager, storeName, token)
+        await this.EnumerateItems(kvp =>
         {
-            this.sessionProvider = sessionProvider;
+            var timerEvent = kvp.Value?.TaskMessage?.Event as TimerFiredEvent;
+            if (timerEvent is null)
+            {
+                ServiceFabricProviderEventSource.Tracing.UnexpectedCodeCondition($"{nameof(ScheduledMessageProvider)}.{nameof(StartAsync)} : Seeing a non timer event in scheduled messages while filling the pending items collection in role start");
+            }
+            else
+            {
+                builder.Add(new Message<Guid, TaskMessageItem>(kvp.Key, kvp.Value));
+            }
+        });
+
+        lock (@lock)
+        {
+            if (this.inMemorySet.Count > 0)
+            {
+                ServiceFabricProviderEventSource.Tracing.UnexpectedCodeCondition($"{nameof(ScheduledMessageProvider)}.{nameof(StartAsync)} : Before we set the In memory set from the builder, there are items in it which should not happen.");
+            }
+            this.inMemorySet = builder.ToImmutableSortedSet(TimerFiredEventComparer.Instance);
         }
 
-        public override async Task StartAsync()
+        var metricsTask = LogMetrics();
+        var nowait = ProcessScheduledMessages();
+    }
+
+    protected override void AddItemInMemory(Guid key, TaskMessageItem value)
+    {
+        lock (@lock)
         {
-            await InitializeStore();
-
-            var builder = this.inMemorySet.ToBuilder();
-
-            await this.EnumerateItems(kvp =>
-            {
-                var timerEvent = kvp.Value?.TaskMessage?.Event as TimerFiredEvent;
-                if (timerEvent == null)
-                {
-                    ServiceFabricProviderEventSource.Tracing.UnexpectedCodeCondition($"{nameof(ScheduledMessageProvider)}.{nameof(StartAsync)} : Seeing a non timer event in scheduled messages while filling the pending items collection in role start");
-                }
-                else
-                {
-                    builder.Add(new Message<Guid, TaskMessageItem>(kvp.Key, kvp.Value));
-                }
-            });
-
-            lock (@lock)
-            {
-                if (this.inMemorySet.Count > 0)
-                {
-                    ServiceFabricProviderEventSource.Tracing.UnexpectedCodeCondition($"{nameof(ScheduledMessageProvider)}.{nameof(StartAsync)} : Before we set the In memory set from the builder, there are items in it which should not happen.");
-                }
-                this.inMemorySet = builder.ToImmutableSortedSet(TimerFiredEventComparer.Instance);
-            }
-
-            var metricsTask = LogMetrics();
-            var nowait = ProcessScheduledMessages();
+            this.inMemorySet = this.inMemorySet.Add(new Message<Guid, TaskMessageItem>(key, value));
         }
 
-        protected override void AddItemInMemory(Guid key, TaskMessageItem value)
+        var timerEvent = value.TaskMessage.Event as TimerFiredEvent;
+        if (timerEvent is not null && timerEvent.FireAt < this.nextActivationCheck)
         {
-            lock (@lock)
-            {
-                this.inMemorySet = this.inMemorySet.Add(new Message<Guid, TaskMessageItem>(key, value));
-            }
-
-            var timerEvent = value.TaskMessage.Event as TimerFiredEvent;
-            if (timerEvent != null && timerEvent.FireAt < this.nextActivationCheck)
-            {
-                SetWaiterForNewItems();
-            }
+            SetWaiterForNewItems();
         }
+    }
 
-        // Since this method is started as part of StartAsync, the other stores maynot be immediately initialized
-        // by the time this invokes operations on those stores. But that would be a transient error and the next
-        // iteration of processing should take care of making things right.
-        async Task ProcessScheduledMessages()
+    // Since this method is started as part of StartAsync, the other stores maynot be immediately initialized
+    // by the time this invokes operations on those stores. But that would be a transient error and the next
+    // iteration of processing should take care of making things right.
+    private async Task ProcessScheduledMessages()
+    {
+        while (!IsStopped())
         {
-            while (!IsStopped())
+            try
             {
-                try
+                var currentTime = DateTime.UtcNow;
+                var nextCheck = currentTime + TimeSpan.FromSeconds(1);
+
+                var builder = this.inMemorySet.ToBuilder();
+                List<Message<Guid, TaskMessageItem>> activatedMessages = new List<Message<Guid, TaskMessageItem>>();
+
+                while (builder.Count > 0)
                 {
-                    var currentTime = DateTime.UtcNow;
-                    var nextCheck = currentTime + TimeSpan.FromSeconds(1);
+                    var firstPendingMessage = builder.Min;
+                    var timerEvent = firstPendingMessage.Value.TaskMessage.Event as TimerFiredEvent;
 
-                    var builder = this.inMemorySet.ToBuilder();
-                    List<Message<Guid, TaskMessageItem>> activatedMessages = new List<Message<Guid, TaskMessageItem>>();
-
-                    while (builder.Count > 0)
+                    if (timerEvent is null)
                     {
-                        var firstPendingMessage = builder.Min;
-                        var timerEvent = firstPendingMessage.Value.TaskMessage.Event as TimerFiredEvent;
-
-                        if (timerEvent == null)
-                        {
-                            throw new Exception("Internal Server Error : Ended up adding non TimerFiredEvent TaskMessage as scheduled message");
-                        }
-
-                        if (timerEvent.FireAt <= currentTime)
-                        {
-                            activatedMessages.Add(firstPendingMessage);
-                            builder.Remove(firstPendingMessage);
-                        }
-                        else
-                        {
-                            nextCheck = timerEvent.FireAt;
-                            break;
-                        }
+                        throw new Exception("Internal Server Error : Ended up adding non TimerFiredEvent TaskMessage as scheduled message");
                     }
 
-                    if (IsStopped())
+                    if (timerEvent.FireAt <= currentTime)
                     {
+                        activatedMessages.Add(firstPendingMessage);
+                        builder.Remove(firstPendingMessage);
+                    }
+                    else
+                    {
+                        nextCheck = timerEvent.FireAt;
                         break;
                     }
+                }
 
-                    if (activatedMessages.Count > 0)
+                if (IsStopped())
+                {
+                    break;
+                }
+
+                if (activatedMessages.Count > 0)
+                {
+                    var keys = activatedMessages.Select(m => m.Key);
+                    var values = activatedMessages.Select(m => m.Value).ToList();
+
+                    IList<OrchestrationInstance> modifiedSessions = null;
+
+                    await RetryHelper.ExecuteWithRetryOnTransient(async () =>
                     {
-                        var keys = activatedMessages.Select(m => m.Key);
-                        var values = activatedMessages.Select(m => m.Value).ToList();
-
-                        IList<OrchestrationInstance> modifiedSessions = null;
-
-                        await RetryHelper.ExecuteWithRetryOnTransient(async () =>
+                        using (var tx = this.StateManager.CreateTransaction())
                         {
-                            using (var tx = this.StateManager.CreateTransaction())
-                            {
-                                modifiedSessions = await this.sessionProvider.TryAppendMessageBatchAsync(tx, values);
-                                await this.CompleteBatchAsync(tx, keys);
-                                await tx.CommitAsync();
-                            }
-                        }, uniqueActionIdentifier: $"Action = '{nameof(ScheduledMessageProvider)}.{nameof(ProcessScheduledMessages)}'");
-
-                        lock (@lock)
-                        {
-                            this.inMemorySet = this.inMemorySet.Except(activatedMessages);
+                            modifiedSessions = await this.sessionProvider.TryAppendMessageBatchAsync(tx, values);
+                            await this.CompleteBatchAsync(tx, keys);
+                            await tx.CommitAsync();
                         }
+                    }, uniqueActionIdentifier: $"Action = '{nameof(ScheduledMessageProvider)}.{nameof(ProcessScheduledMessages)}'");
 
-                        if (modifiedSessions != null)
-                        {
-                            foreach (var sessionId in modifiedSessions)
-                            {
-                                this.sessionProvider.TryEnqueueSession(sessionId);
-                            }
-                        }
+                    lock (@lock)
+                    {
+                        this.inMemorySet = this.inMemorySet.Except(activatedMessages);
                     }
 
-                    this.nextActivationCheck = nextCheck;
-                    await WaitForItemsAsync(this.nextActivationCheck - DateTime.UtcNow);
+                    if (modifiedSessions is not null)
+                    {
+                        foreach (var sessionId in modifiedSessions)
+                        {
+                            this.sessionProvider.TryEnqueueSession(sessionId);
+                        }
+                    }
                 }
-                catch (Exception e)
-                {
-                    ServiceFabricProviderEventSource.Tracing.ExceptionWhileRunningBackgroundJob($"{nameof(ScheduledMessageProvider)}.{nameof(ProcessScheduledMessages)}", e.ToString());
-                    await Task.Delay(TimeSpan.FromMilliseconds(100));
-                }
+
+                this.nextActivationCheck = nextCheck;
+                await WaitForItemsAsync(this.nextActivationCheck - DateTime.UtcNow);
+            }
+            catch (Exception e)
+            {
+                ServiceFabricProviderEventSource.Tracing.ExceptionWhileRunningBackgroundJob($"{nameof(ScheduledMessageProvider)}.{nameof(ProcessScheduledMessages)}", e.ToString());
+                await Task.Delay(TimeSpan.FromMilliseconds(100));
             }
         }
     }

@@ -11,111 +11,94 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+
+using System;
+using System.Diagnostics;
+
+using DurableTask.Core.Settings;
+
+/// <summary>
+/// Factory of TraceContext
+/// </summary>
+public class TraceContextFactory
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Diagnostics;
-    using System.Dynamic;
-    using System.Text;
-    using DurableTask.Core.Settings;
+    /// <summary>
+    /// Create an instance of TraceContext
+    /// </summary>
+    /// <param name="operationName">Operation name for the TraceContext</param>
+    /// <returns></returns>
+    public static TraceContextBase Create(string operationName) => CreateFactory().Create(operationName);
 
     /// <summary>
-    /// Factory of TraceContext
+    /// Create an instance of TraceContext
     /// </summary>
-    public class TraceContextFactory
+    /// <param name="activity">Activity already started</param>
+    /// <returns></returns>
+    public static TraceContextBase Create(Activity activity) => CreateFactory().Create(activity);
+
+    /// <summary>
+    /// Create a default context of TraceContext
+    /// returns NullObjectTraceContext object
+    /// </summary>
+    public static TraceContextBase Empty { get; } = new NullObjectTraceContext();
+
+    private static ITraceContextFactory CreateFactory()
     {
-        /// <summary>
-        /// Create an instance of TraceContext
-        /// </summary>
-        /// <param name="operationName">Operation name for the TraceContext</param>
-        /// <returns></returns>
-        public static TraceContextBase Create(string operationName)
+        switch (CorrelationSettings.Current.Protocol)
         {
-            return CreateFactory().Create(operationName);
+            case Protocol.W3CTraceContext:
+                return new W3CTraceContextFactory();
+            case Protocol.HttpCorrelationProtocol:
+                return new HttpCorrelationProtocolTraceContextFactory();
+            default:
+                throw new NotSupportedException($"{CorrelationSettings.Current.Protocol} is not supported. Check the CorrelationSettings.Current.Protocol");
         }
+    }
 
-        /// <summary>
-        /// Create an instance of TraceContext
-        /// </summary>
-        /// <param name="activity">Activity already started</param>
-        /// <returns></returns>
-        public static TraceContextBase Create(Activity activity)
-        {
-            return CreateFactory().Create(activity);
-        }
+    private interface ITraceContextFactory
+    {
+        TraceContextBase Create(Activity activity);
 
-        /// <summary>
-        /// Create a default context of TraceContext
-        /// returns NullObjectTraceContext object
-        /// </summary>
-        public static TraceContextBase Empty { get; } = new NullObjectTraceContext();
+        TraceContextBase Create(string operationName);
+    }
 
-        static ITraceContextFactory CreateFactory()
-        {
-            switch (CorrelationSettings.Current.Protocol)
-            {
-                case Protocol.W3CTraceContext:
-                    return new W3CTraceContextFactory();                
-                case Protocol.HttpCorrelationProtocol:
-                    return new HttpCorrelationProtocolTraceContextFactory();
-                default:
-                    throw new NotSupportedException($"{CorrelationSettings.Current.Protocol} is not supported. Check the CorrelationSettings.Current.Protocol");
-            }
-        }
+    private class W3CTraceContextFactory : ITraceContextFactory
+    {
+        public TraceContextBase Create(Activity activity)
+         => new W3CTraceContext()
+         {
+             OperationName = activity.OperationName,
+             StartTime = activity.StartTimeUtc,
+             TraceParent = activity.Id,
+             TraceState = activity.TraceStateString,
+             ParentSpanId = activity.ParentSpanId.ToHexString(),
+             // ParentId = activity.Id // TODO check if it necessary
+             CurrentActivity = activity
+         };
 
-        interface ITraceContextFactory
-        {
-            TraceContextBase Create(Activity activity);
+        public TraceContextBase Create(string operationName)
+         => new W3CTraceContext()
+         {
+             OperationName = operationName
+         };
+    }
 
-            TraceContextBase Create(string operationName);
-        }
+    private class HttpCorrelationProtocolTraceContextFactory : ITraceContextFactory
+    {
+        public TraceContextBase Create(Activity activity)
+         => new HttpCorrelationProtocolTraceContext()
+         {
+             OperationName = activity.OperationName,
+             StartTime = activity.StartTimeUtc,
+             ParentId = activity.Id,
+             CurrentActivity = activity
+         };
 
-        class W3CTraceContextFactory : ITraceContextFactory
-        {
-            public TraceContextBase Create(Activity activity)
-            {
-                return new W3CTraceContext()
-                {
-                    OperationName = activity.OperationName,
-                    StartTime = activity.StartTimeUtc,
-                    TraceParent = activity.Id,
-                    TraceState = activity.TraceStateString,
-                    ParentSpanId = activity.ParentSpanId.ToHexString(),
-                    // ParentId = activity.Id // TODO check if it necessary
-                    CurrentActivity = activity
-                };
-            }
-
-            public TraceContextBase Create(string operationName)
-            {
-                return new W3CTraceContext()
-                {
-                    OperationName = operationName
-                };
-            }
-        }
-
-        class HttpCorrelationProtocolTraceContextFactory : ITraceContextFactory
-        {
-            public TraceContextBase Create(Activity activity)
-            {
-                return new HttpCorrelationProtocolTraceContext()
-                {
-                    OperationName = activity.OperationName,
-                    StartTime = activity.StartTimeUtc,
-                    ParentId = activity.Id,
-                    CurrentActivity = activity
-                };
-            }
-
-            public TraceContextBase Create(string operationName)
-            {
-                return new HttpCorrelationProtocolTraceContext()
-                {
-                    OperationName = operationName
-                };
-            }
-        }
+        public TraceContextBase Create(string operationName)
+         => new HttpCorrelationProtocolTraceContext()
+         {
+             OperationName = operationName
+         };
     }
 }

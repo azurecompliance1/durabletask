@@ -11,66 +11,61 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
-namespace DurableTask.Core
+namespace DurableTask.Core;
+
+/// <summary>
+/// Common code for dealing with orchestration tags. Orchestration tags are string-typed
+/// properties that can be explicitly assigned when orchestrations or suborchestrations
+/// are created. A suborchestration automatically inherits the tags of its parent orchestration.
+/// </summary>
+public static class OrchestrationTags
 {
     /// <summary>
-    /// Common code for dealing with orchestration tags. Orchestration tags are string-typed 
-    /// properties that can be explicitly assigned when orchestrations or suborchestrations
-    /// are created. A suborchestration automatically inherits the tags of its parent orchestration.
+    /// A special orchestration tag used for indicating that a suborchestration is fire-and-forget,
+    /// i.e. the parent orchestration does not wait for the result.
     /// </summary>
-    public static class OrchestrationTags
+    /// <remarks>
+    /// Tags are generally intended for application-specific purposes and ignored by the runtime,
+    /// except for this special tag. Unlike general application-defined tags, this tag is not
+    /// automatically inherited by sub-orchestrations.
+    /// </remarks>
+    public const string FireAndForget = "FireAndForget";
+
+    /// <summary>
+    /// Check whether the given tags contain the fire and forget tag
+    /// </summary>
+    /// <param name="tags"></param>
+    /// <returns></returns>
+    internal static bool IsTaggedAsFireAndForget(IDictionary<string, string> tags)
+     => tags is not null && tags.ContainsKey(FireAndForget);
+
+    internal static IDictionary<string, string> MergeTags(
+        IDictionary<string, string> newTags,
+        IDictionary<string, string> existingTags)
     {
-        /// <summary>
-        /// A special orchestration tag used for indicating that a suborchestration is fire-and-forget,
-        /// i.e. the parent orchestration does not wait for the result.
-        /// </summary>
-        /// <remarks>
-        /// Tags are generally intended for application-specific purposes and ignored by the runtime,
-        /// except for this special tag. Unlike general application-defined tags, this tag is not 
-        /// automatically inherited by sub-orchestrations.
-        /// </remarks>
-        public const string FireAndForget = "FireAndForget";
-
-        /// <summary>
-        /// Check whether the given tags contain the fire and forget tag
-        /// </summary>
-        /// <param name="tags"></param>
-        /// <returns></returns>
-        internal static bool IsTaggedAsFireAndForget(IDictionary<string, string> tags)
+        if (existingTags is null)
         {
-            return tags != null && tags.ContainsKey(FireAndForget);
+            return newTags;
         }
-
-        internal static IDictionary<string, string> MergeTags(
-            IDictionary<string, string> newTags,
-            IDictionary<string, string> existingTags)
+        else if (newTags is not null)
         {
-            if (existingTags == null)
-            {
-                return newTags;
-            }
-            else if (newTags != null)
-            {
-                // We merge the two dictionaries of tags, with new tags overriding existing tags
-                return newTags.Concat(
-                    existingTags.Where(k => !newTags.ContainsKey(k.Key) && k.Key != FireAndForget))
-                    .ToDictionary(x => x.Key, y => y.Value);
-            }
-            else if (!existingTags.ContainsKey(FireAndForget))
-            {
-                return existingTags;
-            }
-            else
-            {
-                return existingTags
-                    .Where(k => k.Key != FireAndForget)
-                    .ToDictionary(x => x.Key, y => y.Value);
-            }
+            // We merge the two dictionaries of tags, with new tags overriding existing tags
+            return newTags.Concat(
+                existingTags.Where(k => !newTags.ContainsKey(k.Key) && k.Key != FireAndForget))
+                .ToDictionary(x => x.Key, y => y.Value);
+        }
+        else if (!existingTags.ContainsKey(FireAndForget))
+        {
+            return existingTags;
+        }
+        else
+        {
+            return existingTags
+                .Where(k => k.Key != FireAndForget)
+                .ToDictionary(x => x.Key, y => y.Value);
         }
     }
 }

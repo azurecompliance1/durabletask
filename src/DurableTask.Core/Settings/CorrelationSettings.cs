@@ -11,57 +11,48 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.Core.Settings
+namespace DurableTask.Core.Settings;
+
+/// <summary>
+/// Settings for Distributed Tracing
+/// </summary>
+public class CorrelationSettings
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Net.Sockets;
-    using System.Text;
+    /// <summary>
+    /// Create a new instance of the CorrelationSettings with default settings
+    /// </summary>
+    public CorrelationSettings() => Protocol = Protocol.W3CTraceContext;
 
     /// <summary>
-    /// Settings for Distributed Tracing
+    /// Correlation Protocol
     /// </summary>
-    public class CorrelationSettings
-    {
-        /// <summary>
-        /// Create a new instance of the CorrelationSettings with default settings
-        /// </summary>
-        public CorrelationSettings()
-        {
-            Protocol = Protocol.W3CTraceContext;
-        }
-
-        /// <summary>
-        /// Correlation Protocol
-        /// </summary>
-        public Protocol Protocol { get; set; }
-
-        /// <summary>
-        /// Suppress Distributed Tracing
-        /// default: true
-        /// </summary>
-        public bool EnableDistributedTracing { get; set; } = false;
-
-        /// <summary>
-        /// Current Correlation Settings
-        /// TODO Need to discuss the design for referencing Settings from DurableTask.Core side.
-        /// </summary>
-        public static CorrelationSettings Current { get; set; } = new CorrelationSettings();
-    }
+    public Protocol Protocol { get; set; }
 
     /// <summary>
-    /// Distributed Tracing Protocol
+    /// Suppress Distributed Tracing
+    /// default: true
     /// </summary>
-    public enum Protocol
-    {
-        /// <summary>
-        /// W3C TraceContext Protocol
-        /// </summary>
-        W3CTraceContext,
+    public bool EnableDistributedTracing { get; set; } = false;
 
-        /// <summary>
-        /// HttpCorrelationProtocol
-        /// </summary>
-        HttpCorrelationProtocol
-    }
+    /// <summary>
+    /// Current Correlation Settings
+    /// TODO Need to discuss the design for referencing Settings from DurableTask.Core side.
+    /// </summary>
+    public static CorrelationSettings Current { get; set; } = new CorrelationSettings();
+}
+
+/// <summary>
+/// Distributed Tracing Protocol
+/// </summary>
+public enum Protocol
+{
+    /// <summary>
+    /// W3C TraceContext Protocol
+    /// </summary>
+    W3CTraceContext,
+
+    /// <summary>
+    /// HttpCorrelationProtocol
+    /// </summary>
+    HttpCorrelationProtocol
 }

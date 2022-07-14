@@ -11,52 +11,40 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-namespace DurableTask.AzureServiceFabric.Service
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Web.Http.Dependencies;
+namespace DurableTask.AzureServiceFabric.Service;
 
-    using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Web.Http.Dependencies;
+
+using Microsoft.Extensions.DependencyInjection;
+
+/// <inheritdoc/>
+public sealed class DefaultDependencyResolver : IDependencyResolver
+{
+    private readonly IServiceProvider provider;
+
+    /// <summary>
+    /// Creates an instance of <see cref="DefaultDependencyResolver"/>.
+    /// </summary>
+    /// <param name="provider">An instance of <see cref="IServiceProvider"/> </param>
+    public DefaultDependencyResolver(IServiceProvider provider)
+     => this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
 
     /// <inheritdoc/>
-    public sealed class DefaultDependencyResolver : IDependencyResolver
+    public object GetService(Type serviceType) => provider.GetService(serviceType);
+
+    /// <inheritdoc/>
+    public IEnumerable<object> GetServices(Type serviceType) => provider.GetServices(serviceType);
+
+    /// <inheritdoc/>
+    public IDependencyScope BeginScope() => this;
+
+    #region IDisposable Support
+    /// <inheritdoc />
+    public void Dispose()
     {
-        private IServiceProvider provider;
-
-        /// <summary>
-        /// Creates an instance of <see cref="DefaultDependencyResolver"/>.
-        /// </summary>
-        /// <param name="provider">An instance of <see cref="IServiceProvider"/> </param>
-        public DefaultDependencyResolver(IServiceProvider provider)
-        {
-            this.provider = provider ?? throw new ArgumentNullException(nameof(provider));
-        }
-
-        /// <inheritdoc/>
-        public object GetService(Type serviceType)
-        {
-            return provider.GetService(serviceType);
-        }
-
-        /// <inheritdoc/>
-        public IEnumerable<object> GetServices(Type serviceType)
-        {
-            return provider.GetServices(serviceType);
-        }
-
-        /// <inheritdoc/>
-        public IDependencyScope BeginScope()
-        {
-            return this;
-        }
-
-        #region IDisposable Support
-        /// <inheritdoc />
-        public void Dispose()
-        {
-            // no-op
-        }
-        #endregion
+        // no-op
     }
+    #endregion
 }
