@@ -21,6 +21,7 @@ namespace DurableTask.AzureServiceFabric
     sealed class TaskMessageItem : IExtensibleDataObject
     {
         public TaskMessageItem(TaskMessage taskMessage)
+
         {
             this.TaskMessage = taskMessage ?? throw new ArgumentNullException(nameof(taskMessage));
         }

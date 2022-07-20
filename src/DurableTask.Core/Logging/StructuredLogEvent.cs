@@ -88,13 +88,11 @@ namespace DurableTask.Core.Logging
 
         IEnumerator<KeyValuePair<string, object>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
         {
-            return this.Properties.Select(pair => new KeyValuePair<string, object>(pair.Key, pair.Value.GetValue(this))).GetEnumerator();
+            return this.Properties.Select(pair => new KeyValuePair<string, object>(pair.Key, pair.Value.GetValue(this)))
+                                  .GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable<KeyValuePair<string, object>>)this).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<KeyValuePair<string, object>>)this).GetEnumerator();
 
         static IReadOnlyDictionary<string, PropertyInfo> GetProperties(Type type)
         {

@@ -16,7 +16,7 @@ namespace DurableTask.Stress.Tests
     using CommandLine;
     using CommandLine.Text;
 
-    internal class Options
+    class Options
     {
 #if NETCOREAPP
         [Option('c', "create-hub", Default = false,

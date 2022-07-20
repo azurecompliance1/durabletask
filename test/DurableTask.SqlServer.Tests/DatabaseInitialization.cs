@@ -14,37 +14,39 @@
 
 namespace DurableTask.SqlServer.Tests
 {
-    using Docker.DotNet;
-    using Docker.DotNet.Models;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.VisualStudio.TestTools.UnitTesting;
     using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
+    using Docker.DotNet;
+    using Docker.DotNet.Models;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
 
     [TestClass]
-    public class DatabaseInitialization
+    public sealed class DatabaseInitialization
     {
-        private static readonly AppSettings appSettings;
+        static readonly AppSettings AppSettings;
 
+#pragma warning disable CA1810 // Initialize reference type static fields inline
         static DatabaseInitialization()
         {
-            appSettings = new AppSettings();
+            AppSettings = new AppSettings();
 
             new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
                 .AddJsonFile("appsettings.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build()
-                .Bind(appSettings);
+                .Bind(AppSettings);
         }
+#pragma warning restore CA1810 // Initialize reference type static fields inline
 
         [AssemblyInitialize]
         public static void Initialize(TestContext context)
         {
-            var saPassword = new SqlConnectionStringBuilder(appSettings.ConnectionStrings["SqlServer"]).Password;
+            var saPassword = new SqlConnectionStringBuilder(AppSettings.ConnectionStrings["SqlServer"]).Password;
 
             if (string.IsNullOrWhiteSpace(saPassword))
                 throw new InvalidOperationException("The 'SqlServer' connection string must have a password.");
@@ -52,28 +54,28 @@ namespace DurableTask.SqlServer.Tests
             //perform cleanup to return system to a known state
             EnsureSqlServerContainerIsRemoved().Wait();
 
-            using (var client = new DockerClientConfiguration(appSettings.DockerEndpoint).CreateClient())
-            {
-                client.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = appSettings.SqlContainer.Image, Tag = appSettings.SqlContainer.Tag }, null, new NoOpProgress()).Wait();
+            using var dockerClientConfiguration = new DockerClientConfiguration(AppSettings.DockerEndpoint);
+            using var client = dockerClientConfiguration.CreateClient();
 
-                var response = client.Containers.CreateContainerAsync(new CreateContainerParameters
+            client.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = AppSettings.SqlContainer.Image, Tag = AppSettings.SqlContainer.Tag }, null, new NoOpProgress()).Wait();
+
+            var response = client.Containers.CreateContainerAsync(new CreateContainerParameters
+            {
+                Name = "DurableTask_SQLServer_Test",
+                Image = $"{AppSettings.SqlContainer.Image}:{AppSettings.SqlContainer.Tag}",
+                Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={saPassword}" },
+                HostConfig = new HostConfig
                 {
-                    Name = "DurableTask_SQLServer_Test",
-                    Image = $"{appSettings.SqlContainer.Image}:{appSettings.SqlContainer.Tag}",
-                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={saPassword}" },
-                    HostConfig = new HostConfig
-                    {
-                        PortBindings = new Dictionary<string, IList<PortBinding>>
+                    PortBindings = new Dictionary<string, IList<PortBinding>>
                     {
                         {"1433/tcp", new[]{new PortBinding { HostPort = "1433"} } }
                     }
-                    }
-                }).Result;
+                }
+            }).Result;
 
-                var hasStarted = client.Containers.StartContainerAsync("DurableTask_SQLServer_Test", new ContainerStartParameters()).Result;
+            var hasStarted = client.Containers.StartContainerAsync("DurableTask_SQLServer_Test", new ContainerStartParameters()).Result;
 
-                if (hasStarted == false) throw new Exception("SQL Server container failed to start.");
-            }
+            if (hasStarted == false) throw new Exception("SQL Server container failed to start.");
 
             EnsureDatabaseConnectivity();
 
@@ -82,7 +84,7 @@ namespace DurableTask.SqlServer.Tests
             {
                 var databaseName = GetConnectionStringBuilder().InitialCatalog;
                 command.CommandText = $"CREATE DATABASE [{databaseName}]";
-                
+
                 connection.Open();
                 command.ExecuteNonQuery();
             }
@@ -98,19 +100,18 @@ namespace DurableTask.SqlServer.Tests
         {
             try
             {
-                using (var client = new DockerClientConfiguration(appSettings.DockerEndpoint).CreateClient())
-                {
-                    await client.Containers.StopContainerAsync("DurableTask_SQLServer_Test", new ContainerStopParameters());
+                using var dockerClientConfiguration = new DockerClientConfiguration(AppSettings.DockerEndpoint);
+                using var client = dockerClientConfiguration.CreateClient();
 
-                    await client.Containers.RemoveContainerAsync("DurableTask_SQLServer_Test", new ContainerRemoveParameters());
-                }
+                await client.Containers.StopContainerAsync("DurableTask_SQLServer_Test", new ContainerStopParameters());
+                await client.Containers.RemoveContainerAsync("DurableTask_SQLServer_Test", new ContainerRemoveParameters());
             }
             catch (DockerContainerNotFoundException) { }
         }
 
 
 
-        private static void EnsureDatabaseConnectivity()
+        static void EnsureDatabaseConnectivity()
         {
             using (var connection = GetMasterDatabaseConnection())
             {
@@ -131,7 +132,7 @@ namespace DurableTask.SqlServer.Tests
             throw new Exception("Unable to open connection to SQL Server. Please ensure Docker is running and the password provided meets the requirements for a strong password (https://docs.microsoft.com/en-us/sql/relational-databases/security/strong-passwords).");
         }
 
-        private static SqlConnection GetMasterDatabaseConnection()
+        static SqlConnection GetMasterDatabaseConnection()
         {
             var builder = GetConnectionStringBuilder();
             builder.InitialCatalog = "master";
@@ -144,8 +145,8 @@ namespace DurableTask.SqlServer.Tests
             return new SqlConnection(GetConnectionStringBuilder().ToString());
         }
 
-        private static SqlConnectionStringBuilder GetConnectionStringBuilder() =>
-            new SqlConnectionStringBuilder(appSettings.ConnectionStrings["SqlServer"]);
+        static SqlConnectionStringBuilder GetConnectionStringBuilder() =>
+            new SqlConnectionStringBuilder(AppSettings.ConnectionStrings["SqlServer"]);
 
         public class NoOpProgress : IProgress<JSONMessage>
         {

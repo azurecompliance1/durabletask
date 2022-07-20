@@ -38,10 +38,7 @@ namespace DurableTask.Core
         /// </summary>
         /// <param name="obj">Object to get the name for</param>
         /// <returns>Name of the object instance's type</returns>
-        public static string GetDefaultName(object obj)
-        {
-            return GetDefaultName(obj, false);
-        }
+        public static string GetDefaultName(object obj) => GetDefaultName(obj, false);
 
         /// <summary>
         /// Gets the default name of an Object instance using reflection
@@ -85,10 +82,7 @@ namespace DurableTask.Core
         /// </summary>
         /// <param name="obj">Object to get the version for</param>
         /// <returns>The version as string</returns>
-        public static string GetDefaultVersion(object obj)
-        {
-            return string.Empty;
-        }
+        public static string GetDefaultVersion(object obj) => string.Empty;
 
         internal static string GetFullyQualifiedMethodName(string declaringType, string methodName)
         {

@@ -16,9 +16,9 @@ namespace DurableTask.ServiceBus.Tracking
     using System;
     using System.Collections.Generic;
     using System.Globalization;
+    using DurableTask.Core.Tracking;
     using Microsoft.WindowsAzure.Storage;
     using Microsoft.WindowsAzure.Storage.Table;
-    using DurableTask.Core.Tracking;
 
     /// <summary>
     /// History Tracking Entity for orchestration jump start event
@@ -33,9 +33,7 @@ namespace DurableTask.ServiceBus.Tracking
         /// <summary>
         /// Creates a new AzureTableOrchestrationJumpStartEntity
         /// </summary>
-        public AzureTableOrchestrationJumpStartEntity()
-        {
-        }
+        public AzureTableOrchestrationJumpStartEntity() { }
 
         /// <summary>
         /// Creates a new AzureTableOrchestrationJumpStartEntity with the jump start state and datetime
@@ -58,13 +56,15 @@ namespace DurableTask.ServiceBus.Tracking
 
         internal override IEnumerable<ITableEntity> BuildDenormalizedEntities()
         {
-            var entity1 = new AzureTableOrchestrationJumpStartEntity(OrchestrationJumpStartInstanceEntity);
-            entity1.TaskTimeStamp = TaskTimeStamp;
+            var entity1 = new AzureTableOrchestrationJumpStartEntity(OrchestrationJumpStartInstanceEntity)
+            {
+                TaskTimeStamp = TaskTimeStamp
+            };
             entity1.PartitionKey = GetPartitionKey(entity1.State.CreatedTime);
             entity1.RowKey = AzureTableConstants.InstanceStateExactRowPrefix +
                              AzureTableConstants.JoinDelimiter + State.OrchestrationInstance.InstanceId +
                              AzureTableConstants.JoinDelimiter + State.OrchestrationInstance.ExecutionId;
-            return new [] { entity1 };
+            return new[] { entity1 };
         }
 
         /// <summary>

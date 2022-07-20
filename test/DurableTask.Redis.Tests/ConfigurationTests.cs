@@ -69,7 +69,7 @@ namespace DurableTask.Redis.Tests
                 () => RedisOrchestrationServiceSettings.Validate(
                     new RedisOrchestrationServiceSettings
                     {
-                         MaxConcurrentTaskActivityWorkItems = 0,
+                        MaxConcurrentTaskActivityWorkItems = 0,
                     }));
 
             Assert.Throws<ArgumentOutOfRangeException>(

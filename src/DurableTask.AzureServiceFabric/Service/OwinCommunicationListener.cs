@@ -30,21 +30,18 @@ namespace DurableTask.AzureServiceFabric.Service
         /// <summary>
         /// OWIN server handle.
         /// </summary>
-        private IDisposable serverHandle;
+        IDisposable serverHandle;
 
-        private IOwinAppBuilder owinAppBuilder;
+        readonly IOwinAppBuilder owinAppBuilder;
 
         /// <summary>
-        ///
+        /// Instantiates OwinCommunicationListener from IOwinAppBuilder
         /// </summary>
         /// <param name="owinAppBuilder">Owin Application builder</param>
-        public OwinCommunicationListener(IOwinAppBuilder owinAppBuilder)
-        {
-            this.owinAppBuilder = owinAppBuilder;
-        }
+        public OwinCommunicationListener(IOwinAppBuilder owinAppBuilder) => this.owinAppBuilder = owinAppBuilder;
 
         /// <summary>
-        ///
+        /// Opens the listener asynchronously
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
@@ -55,8 +52,10 @@ namespace DurableTask.AzureServiceFabric.Service
 
             try
             {
-                var builder = new UriBuilder(listeningAddress);
-                builder.Host = "+";
+                var builder = new UriBuilder(listeningAddress)
+                {
+                    Host = "+"
+                };
                 var listeningAddressInPlusFormat = builder.ToString();
                 this.serverHandle = WebApp.Start(listeningAddressInPlusFormat, appBuilder => this.owinAppBuilder.Startup(appBuilder));
                 return Task.FromResult(listeningAddress);
@@ -90,7 +89,7 @@ namespace DurableTask.AzureServiceFabric.Service
             this.StopWebServer();
         }
 
-        private void StopWebServer()
+        void StopWebServer()
         {
             if (this.serverHandle != null)
             {

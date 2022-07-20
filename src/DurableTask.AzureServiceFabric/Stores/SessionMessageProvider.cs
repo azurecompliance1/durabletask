@@ -22,19 +22,11 @@ namespace DurableTask.AzureServiceFabric.Stores
     class SessionMessageProvider : MessageProviderBase<Guid, TaskMessageItem>
     {
         public SessionMessageProvider(IReliableStateManager stateManager, string storeName, CancellationToken token)
-            : base(stateManager, storeName, token)
-        {
-        }
+            : base(stateManager, storeName, token) { }
 
-        protected override void AddItemInMemory(Guid key, TaskMessageItem value)
-        {
-            throw new NotSupportedException();
-        }
+        protected override void AddItemInMemory(Guid key, TaskMessageItem value) => throw new NotSupportedException();
 
-        public override Task StartAsync()
-        {
-            return InitializeStore();
-        }
+        public override Task StartAsync() => InitializeStore();
 
         public async Task<List<Message<Guid, TaskMessageItem>>> ReceiveBatchAsync()
         {

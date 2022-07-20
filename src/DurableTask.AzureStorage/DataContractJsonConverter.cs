@@ -11,15 +11,15 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
-using System.IO;
-using System.Reflection;
-using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
-using Newtonsoft.Json;
-
 namespace DurableTask.AzureStorage
 {
+    using System;
+    using System.IO;
+    using System.Reflection;
+    using System.Runtime.Serialization;
+    using System.Runtime.Serialization.Json;
+    using Newtonsoft.Json;
+
     /// <summary>
     /// This class bridges <see cref="DataContractJsonSerializer"/> with Newtonsoft.Json. This serializer
     /// is slower, but it handles writing to <see cref="IExtensibleDataObject"/>, which Newtonsoft does not.
@@ -27,7 +27,7 @@ namespace DurableTask.AzureStorage
     /// meaning reading via the regular <see cref="DataContractSerializer"/> will not correctly hydrate extra fields
     /// from ExtensionData. However, it can still be done by using <see cref="DataContractJsonSerializer"/> instead.
     /// </summary>
-    internal class DataContractJsonConverter : JsonConverter
+    class DataContractJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)
         {
@@ -105,7 +105,7 @@ namespace DurableTask.AzureStorage
             }
         }
 
-        private static DataContractJsonSerializer CreateSerializer(Type type, JsonSerializer serializer)
+        static DataContractJsonSerializer CreateSerializer(Type type, JsonSerializer serializer)
         {
             return new DataContractJsonSerializer(
                 type,

@@ -13,17 +13,14 @@
 
 namespace DurableTask.ServiceBus.Settings
 {
-    using DurableTask.Core; 
+    using DurableTask.Core;
 
     /// <summary>
     ///     Settings to configure the Service Bus message sender
     /// </summary>
     public class ServiceBusMessageSenderSettings
     {
-        internal ServiceBusMessageSenderSettings() :
-            this(FrameworkConstants.BatchFlushIntervalInMilliSecs)
-        {
-        }
+        internal ServiceBusMessageSenderSettings() : this(FrameworkConstants.BatchFlushIntervalInMilliSecs) { }
 
         internal ServiceBusMessageSenderSettings(int batchFlushInterval)
         {

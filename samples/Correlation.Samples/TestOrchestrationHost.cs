@@ -21,7 +21,7 @@ namespace Correlation.Samples
     using DurableTask.AzureStorage;
     using DurableTask.Core;
 
-    internal sealed class TestOrchestrationHost : IDisposable
+    sealed class TestOrchestrationHost : IDisposable
     {
         readonly AzureStorageOrchestrationServiceSettings settings;
         readonly TaskHubWorker worker;
@@ -33,7 +33,7 @@ namespace Correlation.Samples
         {
             try
             {
-                var service = new AzureStorageOrchestrationService(settings);
+                using var service = new AzureStorageOrchestrationService(settings);
                 service.CreateAsync().GetAwaiter().GetResult(); // I change Create to CreateIfNotExistsAsync for enabling execute without fail once per twice.
 
                 this.settings = settings;
@@ -45,26 +45,19 @@ namespace Correlation.Samples
             }
             catch (Exception e)
             {
+#pragma warning disable CA2200 // Rethrow to preserve stack details
                 throw e;
+#pragma warning restore CA2200 // Rethrow to preserve stack details
             }
         }
 
         public string TaskHub => this.settings.TaskHubName;
 
-        public void Dispose()
-        {
-            this.worker.Dispose();
-        }
+        public void Dispose() => this.worker.Dispose();
 
-        public Task StartAsync()
-        {
-            return this.worker.StartAsync();
-        }
+        public Task StartAsync() => this.worker.StartAsync();
 
-        public Task StopAsync()
-        {
-            return this.worker.StopAsync(isForced: true);
-        }
+        public Task StopAsync() => this.worker.StopAsync(isForced: true);
 
         public async Task<TestOrchestrationClient> StartOrchestrationAsync(
             Type orchestrationType,

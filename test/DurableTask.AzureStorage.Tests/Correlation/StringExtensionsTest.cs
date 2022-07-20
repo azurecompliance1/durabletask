@@ -11,11 +11,11 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
 namespace DurableTask.AzureStorage.Tests.Correlation
 {
+    using System;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 
     [TestClass]
     public class StringExtensionsTest
@@ -43,7 +43,7 @@ namespace DurableTask.AzureStorage.Tests.Correlation
         public void TestParseTraceParenWithNull()
         {
             string someString = null;
-            TraceParent result = someString?.ToTraceParent();
+            TraceParent result = someString.ToTraceParent();
             Assert.IsNull(result);
         }
     }

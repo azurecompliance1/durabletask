@@ -69,7 +69,7 @@ namespace DurableTask.AzureStorage.Partitioning
             this.leaseObserverManager = new LeaseObserverManager(this);
         }
 
-        private static bool DefaultLeaseDecisionDelegate(string leaseId)
+        static bool DefaultLeaseDecisionDelegate(string leaseId)
         {
             return true;
         }
@@ -804,19 +804,19 @@ namespace DurableTask.AzureStorage.Partitioning
 
         sealed class Unsubscriber : IDisposable
         {
-            readonly List<LeaseObserver<T>> _observers;
-            readonly LeaseObserver<T> _observer;
+            readonly List<LeaseObserver<T>> observers;
+            readonly LeaseObserver<T> observer;
 
             internal Unsubscriber(List<LeaseObserver<T>> observers, LeaseObserver<T> observer)
             {
-                this._observers = observers;
-                this._observer = observer;
+                this.observers = observers;
+                this.observer = observer;
             }
 
             public void Dispose()
             {
-                if (_observers.Contains(_observer))
-                    _observers.Remove(_observer);
+                if (observers.Contains(observer))
+                    observers.Remove(observer);
             }
         }
     }

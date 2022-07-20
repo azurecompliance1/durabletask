@@ -18,11 +18,9 @@ namespace Correlation.Samples
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
-    using System.Linq;
     using DurableTask.Core;
     using DurableTask.Core.Settings;
     using Microsoft.ApplicationInsights.Channel;
-    using Microsoft.ApplicationInsights.Common;
     using Microsoft.ApplicationInsights.DataContracts;
     using Microsoft.ApplicationInsights.Extensibility;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
@@ -41,10 +39,10 @@ namespace Correlation.Samples
 #else
     internal
 #endif
-        class DurableTaskCorrelationTelemetryInitializer : ITelemetryInitializer
+    class DurableTaskCorrelationTelemetryInitializer : ITelemetryInitializer
     {
-        private const string RddDiagnosticSourcePrefix = "rdddsc";
-        private const string SqlRemoteDependencyType = "SQL";
+        const string RddDiagnosticSourcePrefix = "rdddsc";
+        const string SqlRemoteDependencyType = "SQL";
 
         /// These internal property is copied from W3CConstants
         /// <summary>Trace-Id tag name.</summary>
@@ -91,7 +89,7 @@ namespace Correlation.Samples
         public HashSet<string> ExcludeComponentCorrelationHttpHeadersOnDomains { get; set; }
 
         /// <summary>
-        /// Constructor 
+        /// Constructor
         /// </summary>
         public DurableTaskCorrelationTelemetryInitializer()
         {
@@ -288,7 +286,7 @@ namespace Correlation.Samples
                 return;
             }
 
-            // Requests and dependnecies are initialized from the current Activity 
+            // Requests and dependnecies are initialized from the current Activity
             // (i.e. telemetry.Id = current.Id). Activity is created for such requests specifically
             // Traces, exceptions, events on the other side are children of current activity
             // There is one exception - SQL DiagnosticSource where current Activity is a parent
@@ -313,10 +311,7 @@ namespace Correlation.Samples
             if (initializeFromCurrent)
             {
                 opTelemetry.Id = activity.SpanId.ToHexString();
-                if (activity.ParentSpanId != null)
-                {
-                    opTelemetry.Context.Operation.ParentId = activity.ParentSpanId.ToHexString();
-                }
+                opTelemetry.Context.Operation.ParentId = activity.ParentSpanId.ToHexString();
             }
             else
             {

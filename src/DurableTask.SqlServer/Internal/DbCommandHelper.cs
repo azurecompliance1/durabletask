@@ -22,7 +22,7 @@ namespace DurableTask.SqlServer.Internal
     /// <summary>
     /// Intended for internal use only; not all edge cases are handled, but these extension methods will work correctly for the queries defined in this assembly and results in more readable code.
     /// </summary>
-    internal static class DbCommandHelper
+    static class DbCommandHelper
     {
         internal readonly static IDictionary<string, object> EmptyParameters = new Dictionary<string, object>();
 

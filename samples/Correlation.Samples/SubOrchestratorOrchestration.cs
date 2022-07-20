@@ -20,7 +20,7 @@ namespace Correlation.Samples
 
     [KnownType(typeof(ChildOrchestration))]
     [KnownType(typeof(ChildActivity))]
-    internal class SubOrchestratorOrchestration : TaskOrchestration<string, string>
+    class SubOrchestratorOrchestration : TaskOrchestration<string, string>
     {
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
@@ -29,7 +29,7 @@ namespace Correlation.Samples
     }
 
     [KnownType(typeof(ChildActivity))]
-    internal class ChildOrchestration : TaskOrchestration<string, string>
+    class ChildOrchestration : TaskOrchestration<string, string>
     {
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
@@ -37,8 +37,7 @@ namespace Correlation.Samples
         }
     }
 
-
-    internal class ChildActivity : TaskActivity<string, string>
+    class ChildActivity : TaskActivity<string, string>
     {
         protected override string Execute(TaskContext context, string input)
         {

@@ -26,40 +26,28 @@ namespace DurableTask.Core.Exceptions
         /// <summary>
         /// Initializes a new instance of the <see cref="OrchestrationFailureException"/>.
         /// </summary>
-        public OrchestrationFailureException()
-        {
-        }
+        public OrchestrationFailureException() { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrchestrationFailureException"/>.
         /// </summary>
-        public OrchestrationFailureException(string reason)
-            : base(reason)
-        {
-        }
+        public OrchestrationFailureException(string reason) : base(reason) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrchestrationFailureException"/>.
         /// </summary>
-        public OrchestrationFailureException(string reason, Exception innerException)
-            : base(reason, innerException)
-        {
-        }
+        public OrchestrationFailureException(string reason, Exception innerException) : base(reason, innerException) { }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrchestrationFailureException"/>.
         /// </summary>
-        public OrchestrationFailureException(string reason, string details)
-            : base(reason)
-        {
-            Details = details;
-        }
+        public OrchestrationFailureException(string reason, string details) : base(reason) => Details = details;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OrchestrationFailureException"/> class.
         /// </summary>
-        protected OrchestrationFailureException(SerializationInfo info, StreamingContext context)
-            : base(info, context)
+        protected OrchestrationFailureException(SerializationInfo info, StreamingContext context) : base(info, context)
+
         {
             Details = info.GetString(nameof(Details));
         }

@@ -26,20 +26,17 @@ namespace DurableTask.Core
     using DurableTask.Core.Serializing;
     using DurableTask.Core.Tracing;
 
-    internal class TaskOrchestrationContext : OrchestrationContext
+    class TaskOrchestrationContext : OrchestrationContext
     {
-        private readonly IDictionary<int, OpenTaskInfo> openTasks;
-        private readonly IDictionary<int, OrchestratorAction> orchestratorActionsMap;
-        private OrchestrationCompleteOrchestratorAction continueAsNew;
-        private bool executionCompletedOrTerminated;
-        private int idCounter;
+        readonly IDictionary<int, OpenTaskInfo> openTasks;
+        readonly IDictionary<int, OrchestratorAction> orchestratorActionsMap;
+        OrchestrationCompleteOrchestratorAction continueAsNew;
+        bool executionCompletedOrTerminated;
+        int idCounter;
 
-        public bool HasContinueAsNew => continueAsNew != null;
+        public bool HasContinueAsNew => continueAsNew is not null;
 
-        public void AddEventToNextIteration(HistoryEvent he)
-        {
-            continueAsNew.CarryoverEvents.Add(he);
-        }
+        public void AddEventToNextIteration(HistoryEvent he) => continueAsNew.CarryoverEvents.Add(he);
 
         public TaskOrchestrationContext(
             OrchestrationInstance orchestrationInstance,
@@ -205,15 +202,9 @@ namespace DurableTask.Core
             this.orchestratorActionsMap.Add(id, action);
         }
 
-        public override void ContinueAsNew(object input)
-        {
-            ContinueAsNew(null, input);
-        }
+        public override void ContinueAsNew(object input) => ContinueAsNew(null, input);
 
-        public override void ContinueAsNew(string newVersion, object input)
-        {
-            ContinueAsNewCore(newVersion, input);
-        }
+        public override void ContinueAsNew(string newVersion, object input) => ContinueAsNewCore(newVersion, input);
 
         void ContinueAsNewCore(string newVersion, object input)
         {
@@ -227,10 +218,7 @@ namespace DurableTask.Core
             };
         }
 
-        public override Task<T> CreateTimer<T>(DateTime fireAt, T state)
-        {
-            return CreateTimer(fireAt, state, CancellationToken.None);
-        }
+        public override Task<T> CreateTimer<T>(DateTime fireAt, T state) => CreateTimer(fireAt, state, CancellationToken.None);
 
         public override async Task<T> CreateTimer<T>(DateTime fireAt, T state, CancellationToken cancelToken)
         {
@@ -438,9 +426,10 @@ namespace DurableTask.Core
                     info.Name,
                     info.Version,
                     failedEvent.Reason,
-                    cause);
-
-                taskFailedException.FailureDetails = failedEvent.FailureDetails;
+                    cause)
+                {
+                    FailureDetails = failedEvent.FailureDetails
+                };
 
                 TaskCompletionSource<string> tcs = info.Result;
                 tcs.SetException(taskFailedException);
@@ -486,8 +475,10 @@ namespace DurableTask.Core
 
                 var failedException = new SubOrchestrationFailedException(failedEvent.EventId, taskId, info.Name,
                     info.Version,
-                    failedEvent.Reason, cause);
-                failedException.FailureDetails = failedEvent.FailureDetails;
+                    failedEvent.Reason, cause)
+                {
+                    FailureDetails = failedEvent.FailureDetails
+                };
 
                 TaskCompletionSource<string> tcs = info.Result;
                 tcs.SetException(failedException);
@@ -515,7 +506,7 @@ namespace DurableTask.Core
             }
         }
 
-        private void LogDuplicateEvent(string source, HistoryEvent historyEvent, int taskId)
+        void LogDuplicateEvent(string source, HistoryEvent historyEvent, int taskId)
         {
             TraceHelper.TraceSession(
                 TraceEventType.Warning,
@@ -533,10 +524,7 @@ namespace DurableTask.Core
             CompleteOrchestration(terminatedEvent.Input, null, OrchestrationStatus.Terminated);
         }
 
-        public void CompleteOrchestration(string result)
-        {
-            CompleteOrchestration(result, null, OrchestrationStatus.Completed);
-        }
+        public void CompleteOrchestration(string result) => CompleteOrchestration(result, null, OrchestrationStatus.Completed);
 
         public void FailOrchestration(Exception failure)
         {
@@ -551,7 +539,7 @@ namespace DurableTask.Core
             string details = null;
             FailureDetails failureDetails = null;
 
-            // correlation 
+            // correlation
             CorrelationTraceClient.Propagate(
                 () =>
                 {
@@ -570,7 +558,7 @@ namespace DurableTask.Core
                     details = orchestrationFailureException.Details;
                 }
             }
-            else 
+            else
             {
                 if (this.ErrorPropagationMode == ErrorPropagationMode.UseFailureDetails)
                 {
@@ -585,7 +573,8 @@ namespace DurableTask.Core
             CompleteOrchestration(reason, details, OrchestrationStatus.Failed, failureDetails);
         }
 
-        public void CompleteOrchestration(string result, string details, OrchestrationStatus orchestrationStatus, FailureDetails failureDetails = null)
+        public void CompleteOrchestration(
+            string result, string details, OrchestrationStatus orchestrationStatus, FailureDetails failureDetails = null)
         {
             int id = this.idCounter++;
             OrchestrationCompleteOrchestratorAction completedOrchestratorAction;
@@ -602,11 +591,13 @@ namespace DurableTask.Core
 
                 this.executionCompletedOrTerminated = true;
 
-                completedOrchestratorAction = new OrchestrationCompleteOrchestratorAction();
-                completedOrchestratorAction.Result = result;
-                completedOrchestratorAction.Details = details;
-                completedOrchestratorAction.OrchestrationStatus = orchestrationStatus;
-                completedOrchestratorAction.FailureDetails = failureDetails;
+                completedOrchestratorAction = new OrchestrationCompleteOrchestratorAction
+                {
+                    Result = result,
+                    Details = details,
+                    OrchestrationStatus = orchestrationStatus,
+                    FailureDetails = failureDetails
+                };
             }
 
             completedOrchestratorAction.Id = id;

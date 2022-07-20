@@ -20,7 +20,7 @@ namespace Correlation.Samples
     using DurableTask.Core;
 
     [KnownType(typeof(ParallelHello))]
-    internal class FanOutFanInOrchestrator : TaskOrchestration<string, string>
+    class FanOutFanInOrchestrator : TaskOrchestration<string, string>
     {
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
@@ -32,7 +32,7 @@ namespace Correlation.Samples
 
             await Task.WhenAll(tasks);
             var buffer = new StringBuilder();
-            foreach(var task in tasks)
+            foreach (var task in tasks)
             {
                 buffer.Append(task.Result);
                 buffer.Append(":");
@@ -42,7 +42,7 @@ namespace Correlation.Samples
         }
     }
 
-    internal class ParallelHello : TaskActivity<string, string>
+    class ParallelHello : TaskActivity<string, string>
     {
         protected override string Execute(TaskContext context, string input)
         {

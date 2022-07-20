@@ -121,11 +121,9 @@ namespace DurableTask.ServiceBus.Tracking
         /// <param name="entities">List of history events to write</param>
         public async Task<object> WriteEntitiesAsync(IEnumerable<InstanceEntityBase> entities)
         {
-            return await Utils.ExecuteWithRetries(() => this.tableClient.WriteEntitiesAsync(entities.Select(HistoryEventToTableEntity)),
-                                string.Empty,
-                                "WriteEntitiesAsync",
-                                MaxRetriesTableStore,
-                                IntervalBetweenRetriesSecs);
+            Task<object> WriteAsync() => this.tableClient.WriteEntitiesAsync(entities.Select(HistoryEventToTableEntity));
+            return await Utils.ExecuteWithRetries(WriteAsync, string.Empty, "WriteEntitiesAsync",
+                                                  MaxRetriesTableStore, IntervalBetweenRetriesSecs);
         }
 
         /// <summary>
@@ -147,13 +145,13 @@ namespace DurableTask.ServiceBus.Tracking
         /// Deletes a list of history events from storage with retries for transient errors
         /// </summary>
         /// <param name="entities">List of history events to delete</param>
-        public async Task<object> DeleteEntitiesAsync(IEnumerable<InstanceEntityBase> entities)
+        public Task<object> DeleteEntitiesAsync(IEnumerable<InstanceEntityBase> entities)
         {
-            return await Utils.ExecuteWithRetries(() => this.tableClient.DeleteEntitiesAsync(entities.Select(HistoryEventToTableEntity)),
-                                string.Empty,
-                                "DeleteEntitiesAsync",
-                                MaxRetriesTableStore,
-                                IntervalBetweenRetriesSecs);
+            Task<object> DeleteAsync() =>
+                this.tableClient.DeleteEntitiesAsync(entities.Select(HistoryEventToTableEntity));
+
+            return Utils.ExecuteWithRetries(
+                DeleteAsync, string.Empty, "DeleteEntitiesAsync", MaxRetriesTableStore, IntervalBetweenRetriesSecs);
         }
 
         /// <summary>

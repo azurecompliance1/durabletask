@@ -128,7 +128,7 @@ namespace DurableTask.Core
         }
     }
 
-    internal class TraceParentObject
+    class TraceParentObject
     {
         public string Version { get; set; }
 

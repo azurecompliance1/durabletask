@@ -13,11 +13,6 @@
 
 namespace DurableTask.Emulator
 {
-    using DurableTask.Core;
-    using DurableTask.Core.Common;
-    using DurableTask.Core.Exceptions;
-    using DurableTask.Core.History;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -25,6 +20,11 @@ namespace DurableTask.Emulator
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using DurableTask.Core;
+    using DurableTask.Core.Common;
+    using DurableTask.Core.Exceptions;
+    using DurableTask.Core.History;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Fully functional in-proc orchestration service for testing
@@ -32,10 +32,10 @@ namespace DurableTask.Emulator
     public class LocalOrchestrationService : IOrchestrationService, IOrchestrationServiceClient, IDisposable
     {
         // ReSharper disable once NotAccessedField.Local
-        Dictionary<string, byte[]> sessionState;
+        readonly Dictionary<string, byte[]> sessionState;
         readonly List<TaskMessage> timerMessages;
 
-        readonly int MaxConcurrentWorkItems = 20;
+        readonly int maxConcurrentWorkItems = 20;
 
         // dictionary<instanceId, dictionary<executionId, orchestrationState>>
         ////Dictionary<string, Dictionary<string, OrchestrationState>> instanceStore;
@@ -103,34 +103,19 @@ namespace DurableTask.Emulator
         // management methods
         /******************************/
         /// <inheritdoc />
-        public Task CreateAsync()
-        {
-            return CreateAsync(true);
-        }
+        public Task CreateAsync() => CreateAsync(true);
 
         /// <inheritdoc />
-        public Task CreateAsync(bool recreateInstanceStore)
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task CreateAsync(bool recreateInstanceStore) => Task.FromResult<object>(null);
 
         /// <inheritdoc />
-        public Task CreateIfNotExistsAsync()
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task CreateIfNotExistsAsync() => Task.FromResult<object>(null);
 
         /// <inheritdoc />
-        public Task DeleteAsync()
-        {
-            return DeleteAsync(true);
-        }
+        public Task DeleteAsync() => DeleteAsync(true);
 
         /// <inheritdoc />
-        public Task DeleteAsync(bool deleteInstanceStore)
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task DeleteAsync(bool deleteInstanceStore) => Task.FromResult<object>(null);
 
         /// <inheritdoc />
         public Task StartAsync()
@@ -147,10 +132,7 @@ namespace DurableTask.Emulator
         }
 
         /// <inheritdoc />
-        public Task StopAsync()
-        {
-            return StopAsync(false);
-        }
+        public Task StopAsync() => StopAsync(false);
 
         /// <summary>
         /// Determines whether is a transient or not.
@@ -159,10 +141,7 @@ namespace DurableTask.Emulator
         /// <returns>
         ///   <c>true</c> if is transient exception; otherwise, <c>false</c>.
         /// </returns>
-        public bool IsTransientException(Exception exception)
-        {
-            return false;
-        }
+        public bool IsTransientException(Exception exception) => false;
 
         /******************************/
         // client methods
@@ -224,10 +203,7 @@ namespace DurableTask.Emulator
         }
 
         /// <inheritdoc />
-        public Task SendTaskOrchestrationMessageAsync(TaskMessage message)
-        {
-            return SendTaskOrchestrationMessageBatchAsync(message);
-        }
+        public Task SendTaskOrchestrationMessageAsync(TaskMessage message) => SendTaskOrchestrationMessageBatchAsync(message);
 
         /// <inheritdoc />
         public Task SendTaskOrchestrationMessageBatchAsync(params TaskMessage[] messages)
@@ -375,7 +351,7 @@ namespace DurableTask.Emulator
         // Task orchestration methods
         /******************************/
         /// <inheritdoc />
-        public int MaxConcurrentTaskOrchestrationWorkItems => this.MaxConcurrentWorkItems;
+        public int MaxConcurrentTaskOrchestrationWorkItems => this.maxConcurrentWorkItems;
 
         /// <inheritdoc />
         public async Task<TaskOrchestrationWorkItem> LockNextTaskOrchestrationWorkItemAsync(
@@ -524,10 +500,7 @@ namespace DurableTask.Emulator
         }
 
         /// <inheritdoc />
-        public Task ReleaseTaskOrchestrationWorkItemAsync(TaskOrchestrationWorkItem workItem)
-        {
-            return Task.FromResult<object>(null);
-        }
+        public Task ReleaseTaskOrchestrationWorkItemAsync(TaskOrchestrationWorkItem workItem) => Task.FromResult<object>(null);
 
         /// <inheritdoc />
         public int TaskActivityDispatcherCount => 1;
@@ -538,7 +511,7 @@ namespace DurableTask.Emulator
         public BehaviorOnContinueAsNew EventBehaviourForContinueAsNew => BehaviorOnContinueAsNew.Carryover;
 
         /// <inheritdoc />
-        public int MaxConcurrentTaskActivityWorkItems => this.MaxConcurrentWorkItems;
+        public int MaxConcurrentTaskActivityWorkItems => this.maxConcurrentWorkItems;
 
         /// <inheritdoc />
         public async Task ForceTerminateTaskOrchestrationAsync(string instanceId, string message)
@@ -560,22 +533,13 @@ namespace DurableTask.Emulator
         }
 
         /// <inheritdoc />
-        public bool IsMaxMessageCountExceeded(int currentMessageCount, OrchestrationRuntimeState runtimeState)
-        {
-            return false;
-        }
+        public bool IsMaxMessageCountExceeded(int currentMessageCount, OrchestrationRuntimeState runtimeState) => false;
 
         /// <inheritdoc />
-        public int GetDelayInSecondsAfterOnProcessException(Exception exception)
-        {
-            return 0;
-        }
+        public int GetDelayInSecondsAfterOnProcessException(Exception exception) => 0;
 
         /// <inheritdoc />
-        public int GetDelayInSecondsAfterOnFetchException(Exception exception)
-        {
-            return 0;
-        }
+        public int GetDelayInSecondsAfterOnFetchException(Exception exception) => 0;
 
         /// <inheritdoc />
         public int TaskOrchestrationDispatcherCount => 1;

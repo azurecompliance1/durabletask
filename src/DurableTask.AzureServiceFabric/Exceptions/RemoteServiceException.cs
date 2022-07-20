@@ -15,7 +15,8 @@ namespace DurableTask.AzureServiceFabric.Exceptions
 {
     using System;
     using System.Net;
-
+    using System.Runtime.Serialization;
+    using System.Security;
     using DurableTask.AzureServiceFabric.Remote;
 
 
@@ -24,7 +25,7 @@ namespace DurableTask.AzureServiceFabric.Exceptions
     /// </summary>
     public class RemoteServiceException : Exception
     {
-        private HttpStatusCode statusCode;
+        readonly HttpStatusCode statusCode;
 
         /// <summary>
         /// Creates an instance of <see cref="RemoteServiceException"/>.
@@ -35,6 +36,24 @@ namespace DurableTask.AzureServiceFabric.Exceptions
         {
             this.statusCode = statusCode;
         }
+
+        /// <summary>Initializes a new instance of the <see cref="RemoteServiceException" /> class.</summary>
+        RemoteServiceException() { }
+
+        /// <summary>Initializes a new instance of the <see cref="RemoteServiceException" /> class with a specified error message.</summary>
+        /// <param name="message">The message that describes the error.</param>
+        RemoteServiceException(string message) : base(message) { }
+
+        /// <summary>Initializes a new instance of the <see cref="RemoteServiceException" /> class with serialized data.</summary>
+        /// <param name="info">The <see cref="System.Runtime.Serialization.SerializationInfo" /> that holds the serialized object data about the exception being thrown.</param>
+        /// <param name="context">The <see cref="System.Runtime.Serialization.StreamingContext" /> that contains contextual information about the source or destination.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="info" /> is <see langword="null" />.</exception>
+        /// <exception cref="System.Runtime.Serialization.SerializationException">The class name is <see langword="null" /> or <see cref="System.Exception.HResult" /> is zero (0).</exception>
+        [SecuritySafeCritical]
+        protected RemoteServiceException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+
+        RemoteServiceException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
         /// Instace of <see cref="HttpStatusCode"/> sent by proxy service.

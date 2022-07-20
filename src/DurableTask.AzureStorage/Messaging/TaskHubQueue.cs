@@ -25,7 +25,7 @@ namespace DurableTask.AzureStorage.Messaging
 
     abstract class TaskHubQueue
     {
-        static long messageSequenceNumber;
+        static long MessageSequenceNumber;
 
         protected readonly AzureStorageClient azureStorageClient;
         protected readonly Queue storageQueue;
@@ -100,13 +100,15 @@ namespace DurableTask.AzureStorage.Messaging
                     outboundTraceActivityId,
                     this.storageQueue.Name,
                     session?.GetCurrentEpisode(),
-                    sourceInstance);
-                data.SequenceNumber = Interlocked.Increment(ref messageSequenceNumber);
+                    sourceInstance)
+                {
+                    SequenceNumber = Interlocked.Increment(ref MessageSequenceNumber)
+                };
 
                 // Inject Correlation TraceContext on a queue.
                 CorrelationTraceClient.Propagate(
                     () => { data.SerializableTraceContext = GetSerializableTraceContext(taskMessage); });
-                
+
                 string rawContent = await this.messageManager.SerializeMessageDataAsync(data);
 
                 QueueMessage queueMessage = new QueueMessage(rawContent);
@@ -175,7 +177,7 @@ namespace DurableTask.AzureStorage.Messaging
             }
 
             // TODO this might not happen, however, in case happen, introduce NullObjectTraceContext.
-            return null; 
+            return null;
         }
 
         static TimeSpan? GetVisibilityDelay(TaskMessage taskMessage)
@@ -201,7 +203,7 @@ namespace DurableTask.AzureStorage.Messaging
                 }
             }
 
-            // Special functionality for entity messages with a delivery delay 
+            // Special functionality for entity messages with a delivery delay
             if (DurableTask.Core.Common.Entities.IsDelayedEntityMessage(taskMessage, out DateTime due))
             {
                 initialVisibilityDelay = due - DateTime.UtcNow;
@@ -244,7 +246,7 @@ namespace DurableTask.AzureStorage.Messaging
             // Exponentially backoff a given queue message until a maximum visibility delay of 10 minutes.
             // Once it hits the maximum, log the message as a poison message.
             const int maxSecondsToWait = 600;
-            int numSecondsToWait = queueMessage.DequeueCount <= 30 ? 
+            int numSecondsToWait = queueMessage.DequeueCount <= 30 ?
                 Math.Min((int)Math.Pow(2, queueMessage.DequeueCount), maxSecondsToWait) :
                 maxSecondsToWait;
             if (numSecondsToWait == maxSecondsToWait)
@@ -365,7 +367,7 @@ namespace DurableTask.AzureStorage.Messaging
             }
         }
 
-        private bool IsMessageGoneException(Exception e)
+        bool IsMessageGoneException(Exception e)
         {
             DurableTaskStorageException? storageException = e as DurableTaskStorageException;
             return storageException?.HttpStatusCode == 404;

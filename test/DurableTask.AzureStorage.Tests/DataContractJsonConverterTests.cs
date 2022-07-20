@@ -1,16 +1,16 @@
-﻿using DurableTask.Core;
-using DurableTask.Core.History;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
-using System;
-using System.Runtime.Serialization;
-
-namespace DurableTask.AzureStorage.Tests
+﻿namespace DurableTask.AzureStorage.Tests
 {
+    using System;
+    using System.Runtime.Serialization;
+    using DurableTask.Core;
+    using DurableTask.Core.History;
+    using Microsoft.VisualStudio.TestTools.UnitTesting;
+    using Newtonsoft.Json;
+
     [TestClass]
     public class DataContractJsonConverterTests
     {
-        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings SerializerSettings = new JsonSerializerSettings
         {
             Converters =
             {
@@ -71,7 +71,7 @@ namespace DurableTask.AzureStorage.Tests
             VerifyEqual(instance, actual);
         }
 
-        private static void VerifyEqual(TaskMessage expected, TaskMessage actual)
+        static void VerifyEqual(TaskMessage expected, TaskMessage actual)
         {
             Assert.IsNotNull(actual);
             Assert.AreEqual(expected.SequenceNumber, actual.SequenceNumber);
@@ -80,7 +80,7 @@ namespace DurableTask.AzureStorage.Tests
             Assert.IsNotNull(actual.ExtensionData);
         }
 
-        private static void VerifyEqual(OrchestrationInstance expected, OrchestrationInstance actual)
+        static void VerifyEqual(OrchestrationInstance expected, OrchestrationInstance actual)
         {
             Assert.IsNotNull(actual);
             Assert.AreEqual(expected.ExecutionId, actual.ExecutionId);
@@ -88,7 +88,7 @@ namespace DurableTask.AzureStorage.Tests
             Assert.IsNotNull(actual.ExtensionData);
         }
 
-        private static void VerifyEqual(HistoryEvent expected, HistoryEvent actual)
+        static void VerifyEqual(HistoryEvent expected, HistoryEvent actual)
         {
             Assert.IsNotNull(actual);
             Assert.AreEqual(expected.GetType(), actual.GetType());
@@ -99,22 +99,20 @@ namespace DurableTask.AzureStorage.Tests
             Assert.IsNotNull(actual.ExtensionData);
         }
 
-        private static string Serialize(object value)
-            => JsonConvert.SerializeObject(value, serializerSettings);
+        static string Serialize(object value) => JsonConvert.SerializeObject(value, SerializerSettings);
 
-        private static T Deserialize<T>(string json)
-            => JsonConvert.DeserializeObject<T>(json, serializerSettings);
+        static T Deserialize<T>(string json) => JsonConvert.DeserializeObject<T>(json, SerializerSettings);
 
         [DataContract(
             Name = "OrchestrationInstance",
             Namespace = "http://schemas.datacontract.org/2004/07/DurableTask.Core")]
-        private class TestOrchestrationInstance : OrchestrationInstance
+        class TestOrchestrationInstance : OrchestrationInstance
         {
             [DataMember]
             public string Extra { get; set; }
         }
 
-        private class Container
+        class Container
         {
             public OrchestrationInstance Instance { get; set; }
         }

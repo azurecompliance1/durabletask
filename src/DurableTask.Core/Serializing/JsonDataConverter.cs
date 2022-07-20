@@ -61,10 +61,7 @@ namespace DurableTask.Core.Serializing
         /// </summary>
         /// <param name="value">Object to serialize</param>
         /// <returns>Object serialized to a string</returns>
-        public override string Serialize(object value)
-        {
-            return Serialize(value, false);
-        }
+        public override string Serialize(object value) => Serialize(value, false);
 
         /// <summary>
         /// Serialize an Object to string with supplied formatting
@@ -86,7 +83,7 @@ namespace DurableTask.Core.Serializing
             {
                 writer.Formatting = (formatted ? Formatting.Indented : Formatting.None);
                 this.serializer.Serialize(writer, value);
-            
+
                 return textWriter.ToString();
             }
         }

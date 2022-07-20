@@ -33,6 +33,7 @@ namespace DurableTask.Core.Tests
         [TestInitialize]
         public async Task Initialize()
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var service = new LocalOrchestrationService();
             this.worker = new TaskHubWorker(service);
 
@@ -42,13 +43,11 @@ namespace DurableTask.Core.Tests
                 .StartAsync();
 
             this.client = new TaskHubClient(service);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         [TestCleanup]
-        public async Task TestCleanup()
-        {
-            await this.worker!.StopAsync(true);
-        }
+        public async Task TestCleanup() => await this.worker!.StopAsync(true);
 
         [TestMethod]
         public async Task DispatchMiddlewareContextBuiltInProperties()
@@ -130,7 +129,9 @@ namespace DurableTask.Core.Tests
             // Each reply gets a new context, so the output should stay the same regardless of how
             // many replays an orchestration goes through.
             Assert.IsNotNull(output);
+#pragma warning disable CA1508 // Avoid dead conditional code
             Assert.AreEqual("01234567899876543210", output?.ToString());
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         [TestMethod]
@@ -167,7 +168,9 @@ namespace DurableTask.Core.Tests
             // Each activity gets a new context, so the output should stay the same regardless of how
             // many activities an orchestration schedules (as long as there is at least one).
             Assert.IsNotNull(output);
+#pragma warning disable CA1508 // Avoid dead conditional code
             Assert.AreEqual("01234567899876543210", output?.ToString());
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         [DataTestMethod]

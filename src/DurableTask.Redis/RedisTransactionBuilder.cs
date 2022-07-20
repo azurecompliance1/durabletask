@@ -11,24 +11,24 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
-using DurableTask.Core;
-using StackExchange.Redis;
-
 namespace DurableTask.Redis
 {
+    using System;
+    using System.Threading.Tasks;
+    using DurableTask.Core;
+    using StackExchange.Redis;
+
     /// <summary>
     /// Allows chaining Redis commands into a single transaction.
     /// </summary>
-    internal class RedisTransactionBuilder
+    class RedisTransactionBuilder
     {
-        private readonly string taskHub;
-        private readonly string partition;
-        private readonly ITransaction transaction;
-        private readonly IConnectionMultiplexer connection;
+        readonly string taskHub;
+        readonly string partition;
+        readonly ITransaction transaction;
+        readonly IConnectionMultiplexer connection;
 
-        private RedisTransactionBuilder(string taskHub, string partition, ConnectionMultiplexer connection, Condition condition)
+        RedisTransactionBuilder(string taskHub, string partition, ConnectionMultiplexer connection, Condition condition)
         {
             this.taskHub = taskHub;
             this.partition = partition;
@@ -126,13 +126,10 @@ namespace DurableTask.Redis
             {
                 transaction.ListRightPopAsync(orchestrationQueueKey);
             }
-            
+
             return this;
         }
 
-        public async Task<bool> CommitTransactionAsync()
-        {
-            return await transaction.ExecuteAsync();
-        }
+        public Task<bool> CommitTransactionAsync() => transaction.ExecuteAsync();
     }
 }

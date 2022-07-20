@@ -33,10 +33,7 @@ namespace DurableTask.AzureServiceFabric
             return delayTask != resultTask;
         }
 
-        public void Set()
-        {
-            this.taskCompletionSource.TrySetResult(true);
-        }
+        public void Set() => this.taskCompletionSource.TrySetResult(true);
 
         public void Reset()
         {
@@ -44,7 +41,8 @@ namespace DurableTask.AzureServiceFabric
             {
                 var thisTcs = this.taskCompletionSource;
 
-                if (!thisTcs.Task.IsCompleted || Interlocked.CompareExchange(ref this.taskCompletionSource, new TaskCompletionSource<bool>(), thisTcs) == thisTcs)
+                if (!thisTcs.Task.IsCompleted
+                 || Interlocked.CompareExchange(ref this.taskCompletionSource, new TaskCompletionSource<bool>(), thisTcs) == thisTcs)
                 {
                     return;
                 }

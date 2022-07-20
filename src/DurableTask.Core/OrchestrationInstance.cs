@@ -16,6 +16,7 @@ namespace DurableTask.Core
     using System.Diagnostics.CodeAnalysis;
     using System.Runtime.Serialization;
 
+    // TODO: Consider declaring as a record
     /// <summary>
     /// Represents the state of an orchestration instance
     /// </summary>
@@ -34,17 +35,14 @@ namespace DurableTask.Core
         [DataMember]
         public string ExecutionId { get; set; }
 
-        internal OrchestrationInstance Clone()
+        internal OrchestrationInstance Clone() => new OrchestrationInstance
         {
-            return new OrchestrationInstance
-            {
-                ExecutionId = ExecutionId,
-                InstanceId = InstanceId
-            };
-        }
+            ExecutionId = ExecutionId,
+            InstanceId = InstanceId
+        };
 
         /// <summary>
-        /// Serves as a hash function for an OrchestrationInstance. 
+        /// Serves as a hash function for an OrchestrationInstance.
         /// </summary>
         /// <returns>
         /// A hash code for the current object.
@@ -61,10 +59,7 @@ namespace DurableTask.Core
         /// <returns>
         /// A string that represents the current object.
         /// </returns>
-        public override string ToString()
-        {
-            return $"[InstanceId: {this.InstanceId}, ExecutionId: {this.ExecutionId}]";
-        }
+        public override string ToString() => $"[InstanceId: {this.InstanceId}, ExecutionId: {this.ExecutionId}]";
 
         /// <summary>
         /// Implementation for <see cref="IExtensibleDataObject.ExtensionData"/>.

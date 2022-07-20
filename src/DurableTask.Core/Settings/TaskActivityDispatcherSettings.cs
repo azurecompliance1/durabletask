@@ -49,14 +49,11 @@ namespace DurableTask.Core.Settings
         /// </summary>
         public int MaxConcurrentActivities { get; set; }
 
-        internal TaskActivityDispatcherSettings Clone()
+        internal TaskActivityDispatcherSettings Clone() => new TaskActivityDispatcherSettings
         {
-            return new TaskActivityDispatcherSettings
-            {
-                TransientErrorBackOffSecs = TransientErrorBackOffSecs,
-                NonTransientErrorBackOffSecs = NonTransientErrorBackOffSecs,
-                MaxConcurrentActivities = MaxConcurrentActivities,
-            };
-        }
+            TransientErrorBackOffSecs = TransientErrorBackOffSecs,
+            NonTransientErrorBackOffSecs = NonTransientErrorBackOffSecs,
+            MaxConcurrentActivities = MaxConcurrentActivities,
+        };
     }
 }

@@ -22,7 +22,7 @@ namespace DurableTask.Samples.AverageCalculator
         {
             if (chunk == null || chunk.Length != 2)
             {
-                throw new ArgumentException("chunk");
+                throw new ArgumentException("chunk cannot have Length other than 2", nameof(chunk));
             }
 
             Console.WriteLine("Compute Sum for " + chunk[0] + "," + chunk[1]);

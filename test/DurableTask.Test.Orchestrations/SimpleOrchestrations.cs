@@ -23,10 +23,7 @@ namespace DurableTask.Test.Orchestrations
     [System.Runtime.InteropServices.ComVisible(false)]
     public sealed class SimplestGetUserTask : TaskActivity<string, string>
     {
-        protected override string Execute(TaskContext context, string input)
-        {
-            return "Gabbar";
-        }
+        protected override string Execute(TaskContext context, string input) => "Gabbar";
     }
 
     public class SimpleGenerationOrchestration : TaskOrchestration<string, string>
@@ -103,10 +100,7 @@ namespace DurableTask.Test.Orchestrations
 
     public sealed class SimplestSendGreetingTask : TaskActivity<string, string>
     {
-        protected override string Execute(TaskContext context, string user)
-        {
-            return "Greeting send to " + user;
-        }
+        protected override string Execute(TaskContext context, string user) => "Greeting send to " + user;
     }
 
     public class GenerationSignalOrchestration : TaskOrchestration<int, int>
@@ -114,7 +108,6 @@ namespace DurableTask.Test.Orchestrations
         // HACK: This is just a hack to communicate result of orchestration back to test
         public static string Result;
         public static ManualResetEvent Signal = new ManualResetEvent(false);
-
         TaskCompletionSource<string> resumeHandle;
 
         public override async Task<int> RunTask(OrchestrationContext context, int numberOfGenerations)
@@ -289,10 +282,10 @@ namespace DurableTask.Test.Orchestrations
 
     public sealed class ChangeStatusOrchestration : TaskOrchestration<string, string[]>
     {
-        private bool hasSetCustomStatus = false;
-        private string customStatus = null;
+        bool hasSetCustomStatus = false;
+        string customStatus = null;
 
-        private async Task SetCustomStatus(OrchestrationContext context, string status)
+        async Task SetCustomStatus(OrchestrationContext context, string status)
         {
             this.hasSetCustomStatus = true;
             this.customStatus = status;
@@ -324,7 +317,7 @@ namespace DurableTask.Test.Orchestrations
     [KnownType(typeof(EventConversationOrchestration.Responder))]
     public sealed class EventConversationOrchestration : TaskOrchestration<string, bool>
     {
-        private readonly TaskCompletionSource<string> tcs
+        readonly TaskCompletionSource<string> tcs
             = new TaskCompletionSource<string>(TaskContinuationOptions.ExecuteSynchronously);
 
         // HACK: This is just a hack to communicate result of orchestration back to test
@@ -355,15 +348,15 @@ namespace DurableTask.Test.Orchestrations
 
             // send the id of this orchestration to the responder
             var responderInstance = new OrchestrationInstance() { InstanceId = responderId };
-            context.SendEvent(responderInstance, channelName, context.OrchestrationInstance.InstanceId);
+            context.SendEvent(responderInstance, ChannelName, context.OrchestrationInstance.InstanceId);
 
-            // wait for a response event 
+            // wait for a response event
             var message = await tcs.Task;
             if (message != "hi from Herkimer")
                 throw new Exception("test failed");
 
             // tell the responder to stop listening
-            context.SendEvent(responderInstance, channelName, "stop");
+            context.SendEvent(responderInstance, ChannelName, "stop");
 
             // if this was not a fire-and-forget orchestration, wait for it to complete
             var receiverResult = await responderOrchestration;
@@ -378,17 +371,17 @@ namespace DurableTask.Test.Orchestrations
 
         public override void OnEvent(OrchestrationContext context, string name, string input)
         {
-            if (name == channelName)
+            if (name == ChannelName)
             {
                 tcs.TrySetResult(input);
             }
         }
 
-        private const string channelName = "conversation";
+        const string ChannelName = "conversation";
 
         public class Responder : TaskOrchestration<string, string>
         {
-            private readonly TaskCompletionSource<string> tcs
+            readonly TaskCompletionSource<string> tcs
                 = new TaskCompletionSource<string>(TaskContinuationOptions.ExecuteSynchronously);
 
             public async override Task<string> RunTask(OrchestrationContext context, string input)
@@ -403,7 +396,7 @@ namespace DurableTask.Test.Orchestrations
                 {
                     // send a message back to the sender
                     var senderInstance = new OrchestrationInstance() { InstanceId = message };
-                    context.SendEvent(senderInstance, channelName, $"hi from {input}");
+                    context.SendEvent(senderInstance, ChannelName, $"hi from {input}");
 
                     // start over to wait for the next message
                     context.ContinueAsNew(input);
@@ -414,7 +407,7 @@ namespace DurableTask.Test.Orchestrations
 
             public override void OnEvent(OrchestrationContext context, string name, string input)
             {
-                if (name == channelName)
+                if (name == ChannelName)
                 {
                     tcs.TrySetResult(input);
                 }

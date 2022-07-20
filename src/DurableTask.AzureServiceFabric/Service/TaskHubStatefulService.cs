@@ -19,9 +19,7 @@ namespace DurableTask.AzureServiceFabric.Service
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
     using DurableTask.AzureServiceFabric.Tracing;
-
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
 
@@ -76,7 +74,8 @@ namespace DurableTask.AzureServiceFabric.Service
         /// <returns>A collection of listeners.</returns>
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
         {
-            return serviceListeners.Select(listener => listener.CreateServiceReplicaListener()).Where(listener => listener != null);
+            return serviceListeners.Select(listener => listener.CreateServiceReplicaListener())
+                                   .Where(listener => listener is not null);
         }
 
         /// <summary>

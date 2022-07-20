@@ -13,9 +13,11 @@
 
 namespace DurableTask.ServiceBus.Tests
 {
+#pragma warning disable CA2211 // Non-constant fields should not be visible
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Diagnostics.Contracts;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -54,7 +56,7 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryByInstanceIdTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -64,15 +66,15 @@ namespace DurableTask.ServiceBus.Tests
             var instanceId4 = "system_upgrade";
             var instanceId5 = "apiservice2_upgrade";
 
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId1, "DONTTHROW");
-            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId2, "DONTTHROW");
-            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId3, "DONTTHROW");
-            OrchestrationInstance id4 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id4 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId4, "DONTTHROW");
-            OrchestrationInstance id5 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id5 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId5, "DONTTHROW");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60);
@@ -122,8 +124,8 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task SegmentedQueryUnequalCountsTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration),
-                typeof (InstanceStoreTestOrchestration2))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration),
+                typeof(InstanceStoreTestOrchestration2))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -131,7 +133,7 @@ namespace DurableTask.ServiceBus.Tests
             {
                 string instanceId = "apiservice" + i;
                 await this.client.CreateOrchestrationInstanceAsync(
-                    i%2 == 0 ? typeof (InstanceStoreTestOrchestration) : typeof (InstanceStoreTestOrchestration2),
+                    i % 2 == 0 ? typeof(InstanceStoreTestOrchestration) : typeof(InstanceStoreTestOrchestration2),
                     instanceId, "DONTTHROW");
             }
 
@@ -158,8 +160,8 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task PurgeOrchestrationHistoryTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration),
-                typeof (InstanceStoreTestOrchestration2))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration),
+                typeof(InstanceStoreTestOrchestration2))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -167,7 +169,7 @@ namespace DurableTask.ServiceBus.Tests
             {
                 string instanceId = "apiservice" + i;
                 await this.client.CreateOrchestrationInstanceAsync(
-                    i%2 == 0 ? typeof (InstanceStoreTestOrchestration) : typeof (InstanceStoreTestOrchestration2),
+                    i % 2 == 0 ? typeof(InstanceStoreTestOrchestration) : typeof(InstanceStoreTestOrchestration2),
                     instanceId, "DONTTHROW");
             }
 
@@ -187,7 +189,7 @@ namespace DurableTask.ServiceBus.Tests
             for (var i = 0; i < 10; i++)
             {
                 string instanceId = "apiservice" + i;
-                await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
+                await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
             }
 
             Thread.Sleep(TimeSpan.FromSeconds(10));
@@ -196,7 +198,7 @@ namespace DurableTask.ServiceBus.Tests
             for (var i = 10; i < 20; i++)
             {
                 string instanceId = "apiservice" + i;
-                await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
+                await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
             }
 
             Thread.Sleep(TimeSpan.FromSeconds(30));
@@ -222,15 +224,15 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task PurgeManyOrchestrationHistoryTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration),
-                typeof (InstanceStoreTestOrchestration2))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration),
+                typeof(InstanceStoreTestOrchestration2))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
             for (var i = 0; i < 110; i++)
             {
                 string instanceId = "apiservice" + i;
-                await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
+                await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId, "DONTTHROW");
             }
 
             Thread.Sleep(TimeSpan.FromSeconds(50));
@@ -251,8 +253,8 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task SegmentedQueryTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration),
-                typeof (InstanceStoreTestOrchestration2))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration),
+                typeof(InstanceStoreTestOrchestration2))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -260,7 +262,7 @@ namespace DurableTask.ServiceBus.Tests
             {
                 string instanceId = "apiservice" + i;
                 await this.client.CreateOrchestrationInstanceAsync(
-                    i%2 == 0 ? typeof (InstanceStoreTestOrchestration) : typeof (InstanceStoreTestOrchestration2),
+                    i % 2 == 0 ? typeof(InstanceStoreTestOrchestration) : typeof(InstanceStoreTestOrchestration2),
                     instanceId, "DONTTHROW");
             }
 
@@ -282,6 +284,7 @@ namespace DurableTask.ServiceBus.Tests
                 .AddInstanceFilter("apiservice", true)
                 .AddNameVersionFilter("DurableTask.ServiceBus.Tests.InstanceStoreQueryTests+InstanceStoreTestOrchestration");
 
+#pragma warning disable CA1508 // Avoid dead conditional code
             seg = null;
             results = new List<OrchestrationState>();
             do
@@ -313,13 +316,14 @@ namespace DurableTask.ServiceBus.Tests
             seg = await this.queryClient.QueryOrchestrationStatesSegmentedAsync(query, null);
 
             Assert.IsTrue(seg.ContinuationToken == null);
+#pragma warning restore CA1508 // Avoid dead conditional code
             Assert.AreEqual(7, seg.Results.Count());
         }
 
         [TestMethod]
         public async Task QueryByTimeTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -328,14 +332,14 @@ namespace DurableTask.ServiceBus.Tests
             var instanceId3 = "third";
 
             DateTime firstBatchStart = DateTime.UtcNow;
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId1, "WAIT_DONTTHROW");
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId1, "WAIT_DONTTHROW");
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60);
 
             DateTime firstBatchEnd = DateTime.UtcNow;
             DateTime secondBatchStart = DateTime.UtcNow;
 
-            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId2, "WAIT_DONTTHROW");
-            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration), instanceId3, "WAIT_DONTTHROW");
+            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId2, "WAIT_DONTTHROW");
+            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration), instanceId3, "WAIT_DONTTHROW");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id2, 60);
             await TestHelpers.WaitForInstanceAsync(this.client, id3, 60);
@@ -383,14 +387,14 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryByTimeForRunningOrchestrationsTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
             var instanceId1 = "first";
 
             DateTime firstBatchStart = DateTime.UtcNow;
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId1, "WAIT_DONTTHROW");
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60, false);
 
@@ -412,14 +416,14 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryByLastUpdatedTimeTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
             var instanceId1 = "first";
 
             DateTime firstBatchStart = DateTime.UtcNow;
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instanceId1, "WAIT_AND_WAIT_DONTTHROW");
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60, false);
 
@@ -479,13 +483,13 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryByStatusTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT_THROW");
-            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT_DONTTHROW");
 
             OrchestrationStateQuery completedQuery =
@@ -526,7 +530,7 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryWithMultipleFiltersTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
@@ -534,11 +538,11 @@ namespace DurableTask.ServiceBus.Tests
             var instance2 = "apiservice1_upgrade2";
             var instance3 = "system_gc";
 
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instance1, "WAIT_THROW");
-            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instance2, "WAIT_DONTTHROW");
-            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id3 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instance3, "WAIT_DONTTHROW");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60);
@@ -575,13 +579,13 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task QueryMultiGenerationalTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
             var instance1 = "apiservice1_upgrade1";
 
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 instance1, "WAIT_NEWGEN");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60);
@@ -608,13 +612,13 @@ namespace DurableTask.ServiceBus.Tests
         public async Task QueryByNameVersionTest()
         {
             ObjectCreator<TaskOrchestration> c1 = new NameValueObjectCreator<TaskOrchestration>(
-                "orch1", "1.0", typeof (InstanceStoreTestOrchestration));
+                "orch1", "1.0", typeof(InstanceStoreTestOrchestration));
 
             ObjectCreator<TaskOrchestration> c2 = new NameValueObjectCreator<TaskOrchestration>(
-                "orch1", "2.0", typeof (InstanceStoreTestOrchestration));
+                "orch1", "2.0", typeof(InstanceStoreTestOrchestration));
 
             ObjectCreator<TaskOrchestration> c3 = new NameValueObjectCreator<TaskOrchestration>(
-                "orch2", string.Empty, typeof (InstanceStoreTestOrchestration));
+                "orch2", string.Empty, typeof(InstanceStoreTestOrchestration));
 
             await this.taskHub.AddTaskOrchestrations(c1, c2, c3)
                 .AddTaskActivities(new Activity1())
@@ -672,7 +676,8 @@ namespace DurableTask.ServiceBus.Tests
 
             public override async Task<string> RunTask(OrchestrationContext context, string input)
             {
-                string result = await context.ScheduleTask<string>(typeof (Activity1));
+                Contract.Assume(context is not null);
+                string result = await context.ScheduleTask<string>(typeof(Activity1));
                 if (string.Equals(input, "THROW", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException("BADFOOD");

@@ -20,7 +20,7 @@ namespace DurableTask.Emulator
     using System.Threading;
     using System.Threading.Tasks;
 
-    internal class PeekLockQueue
+    class PeekLockQueue
     {
         readonly List<TaskMessage> messages;
         readonly HashSet<TaskMessage> lockTable;

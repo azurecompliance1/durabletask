@@ -17,8 +17,8 @@ namespace DurableTask.ServiceBus.Tracking
     using System.Diagnostics;
     using System.Globalization;
     using System.Text.RegularExpressions;
-    using DurableTask.Core.Tracing;
     using DurableTask.Core.Common;
+    using DurableTask.Core.Tracing;
 
     /// <summary>
     /// A helper class for the Azure blob storage client.
@@ -70,10 +70,7 @@ namespace DurableTask.ServiceBus.Tracking
         /// </summary>
         /// <param name="hubName">The hub name. Converted to lower case to build the prefix.</param>
         /// <returns>The container name prefix</returns>
-        public static string BuildContainerNamePrefix(string hubName)
-        {
-            return $"{hubName.ToLower()}{ContainerNameDelimiter}dtfx";
-        }
+        public static string BuildContainerNamePrefix(string hubName) => $"{hubName.ToLower()}{ContainerNameDelimiter}dtfx";
 
         /// <summary>
         /// Build a blob key for the session.
@@ -179,9 +176,6 @@ namespace DurableTask.ServiceBus.Tracking
         /// <param name="prefix">The container name prefix</param>
         /// <param name="suffix">The container name suffix</param>
         /// <returns>The container name</returns>
-        public static string BuildContainerName(string prefix, string suffix)
-        {
-            return $"{prefix}{ContainerNameDelimiter}{suffix}";
-        }
+        public static string BuildContainerName(string prefix, string suffix) => $"{prefix}{ContainerNameDelimiter}{suffix}";
     }
 }

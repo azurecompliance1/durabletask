@@ -402,9 +402,11 @@ namespace DurableTask.AzureServiceFabric.Integration.Tests
             await Task.Delay(TimeSpan.FromSeconds(1));
 
             var reason = "Testing Terminate (Twice) Functionality";
-            var tasks = new List<Task>();
-            tasks.Add(this.taskHubClient.TerminateInstanceAsync(instance, reason));
-            tasks.Add(this.taskHubClient.TerminateInstanceAsync(instance, reason));
+            var tasks = new List<Task>
+            {
+                this.taskHubClient.TerminateInstanceAsync(instance, reason),
+                this.taskHubClient.TerminateInstanceAsync(instance, reason)
+            };
             await Task.WhenAll(tasks);
             var result = await this.taskHubClient.WaitForOrchestrationAsync(instance, TimeSpan.FromMinutes(1));
 

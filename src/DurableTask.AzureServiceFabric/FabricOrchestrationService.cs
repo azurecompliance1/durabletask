@@ -20,13 +20,12 @@ namespace DurableTask.AzureServiceFabric
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using DurableTask.Core;
-    using DurableTask.Core.History;
-    using DurableTask.Core.Tracking;
     using DurableTask.AzureServiceFabric.Stores;
     using DurableTask.AzureServiceFabric.TaskHelpers;
     using DurableTask.AzureServiceFabric.Tracing;
+    using DurableTask.Core;
+    using DurableTask.Core.History;
+    using DurableTask.Core.Tracking;
     using Microsoft.ServiceFabric.Data;
 
     class FabricOrchestrationService : IOrchestrationService
@@ -39,7 +38,7 @@ namespace DurableTask.AzureServiceFabric
         readonly FabricOrchestrationProviderSettings settings;
         readonly CancellationTokenSource cancellationTokenSource;
 
-        ConcurrentDictionary<string, SessionInformation> sessionInfos = new ConcurrentDictionary<string, SessionInformation>();
+        readonly ConcurrentDictionary<string, SessionInformation> sessionInfos = new ConcurrentDictionary<string, SessionInformation>();
 
         public FabricOrchestrationService(IReliableStateManager stateManager,
             SessionProvider orchestrationProvider,
@@ -56,18 +55,16 @@ namespace DurableTask.AzureServiceFabric
             this.scheduledMessagesProvider = new ScheduledMessageProvider(this.stateManager, Constants.ScheduledMessagesDictionaryName, orchestrationProvider, cancellationTokenSource.Token);
         }
 
-        public Task StartAsync()
-        {
-            return Task.WhenAll(this.activitiesProvider.StartAsync(),
-                this.scheduledMessagesProvider.StartAsync(),
-                this.instanceStore.StartAsync(),
-                this.orchestrationProvider.StartAsync());
-        }
+        public Task StartAsync() => Task.WhenAll(
 
-        public Task StopAsync()
-        {
-            return StopAsync(false);
-        }
+            this.activitiesProvider.StartAsync(),
+            this.scheduledMessagesProvider.StartAsync(),
+            this.instanceStore.StartAsync(),
+            this.orchestrationProvider.StartAsync()
+
+        );
+
+        public Task StopAsync() => StopAsync(false);
 
         public Task StopAsync(bool isForced)
         {
@@ -79,33 +76,23 @@ namespace DurableTask.AzureServiceFabric
             return Task.CompletedTask;
         }
 
-        public Task CreateAsync()
-        {
-            return CreateAsync(true);
-        }
+        public Task CreateAsync() => CreateAsync(true);
 
-        public Task CreateAsync(bool recreateInstanceStore)
-        {
-            return DeleteAsync(deleteInstanceStore: recreateInstanceStore);
-            // Actual creation will be done on demand when we call GetOrAddAsync in StartAsync method.
-        }
+        // Actual creation will be done on demand when we call GetOrAddAsync in StartAsync method.
+        public Task CreateAsync(bool recreateInstanceStore) => DeleteAsync(deleteInstanceStore: recreateInstanceStore);
 
-        public Task CreateIfNotExistsAsync()
-        {
-            return Task.CompletedTask;
-        }
+        public Task CreateIfNotExistsAsync() => Task.CompletedTask;
 
-        public Task DeleteAsync()
-        {
-            return DeleteAsync(true);
-        }
+        public Task DeleteAsync() => DeleteAsync(true);
 
         public Task DeleteAsync(bool deleteInstanceStore)
         {
-            List<Task> tasks = new List<Task>();
-            tasks.Add(this.stateManager.RemoveAsync(Constants.OrchestrationDictionaryName));
-            tasks.Add(this.stateManager.RemoveAsync(Constants.ScheduledMessagesDictionaryName));
-            tasks.Add(this.stateManager.RemoveAsync(Constants.ActivitiesQueueName));
+            List<Task> tasks = new List<Task>
+            {
+                this.stateManager.RemoveAsync(Constants.OrchestrationDictionaryName),
+                this.stateManager.RemoveAsync(Constants.ScheduledMessagesDictionaryName),
+                this.stateManager.RemoveAsync(Constants.ActivitiesQueueName)
+            };
 
             if (deleteInstanceStore)
             {
@@ -115,20 +102,11 @@ namespace DurableTask.AzureServiceFabric
             return Task.WhenAll(tasks);
         }
 
-        public bool IsMaxMessageCountExceeded(int currentMessageCount, OrchestrationRuntimeState runtimeState)
-        {
-            return false;
-        }
+        public bool IsMaxMessageCountExceeded(int currentMessageCount, OrchestrationRuntimeState runtimeState) => false;
 
-        public int GetDelayInSecondsAfterOnProcessException(Exception exception)
-        {
-            return GetDelayForFetchOrProcessException(exception);
-        }
+        public int GetDelayInSecondsAfterOnProcessException(Exception exception) => GetDelayForFetchOrProcessException(exception);
 
-        public int GetDelayInSecondsAfterOnFetchException(Exception exception)
-        {
-            return GetDelayForFetchOrProcessException(exception);
-        }
+        public int GetDelayInSecondsAfterOnFetchException(Exception exception) => GetDelayForFetchOrProcessException(exception);
 
         public int TaskOrchestrationDispatcherCount => this.settings.TaskOrchestrationDispatcherSettings.DispatcherCount;
         public int MaxConcurrentTaskOrchestrationWorkItems => this.settings.TaskOrchestrationDispatcherSettings.MaxConcurrentOrchestrations;
@@ -194,10 +172,7 @@ namespace DurableTask.AzureServiceFabric
             }
         }
 
-        public Task RenewTaskOrchestrationWorkItemLockAsync(TaskOrchestrationWorkItem workItem)
-        {
-            return Task.CompletedTask;
-        }
+        public Task RenewTaskOrchestrationWorkItemLockAsync(TaskOrchestrationWorkItem workItem) => Task.CompletedTask;
 
         public async Task CompleteTaskOrchestrationWorkItemAsync(
             TaskOrchestrationWorkItem workItem,
@@ -343,7 +318,7 @@ namespace DurableTask.AzureServiceFabric
         }
 
         // Caller should ensure the workItem has reached terminal state.
-        private async Task HandleCompletedOrchestration(TaskOrchestrationWorkItem workItem)
+        async Task HandleCompletedOrchestration(TaskOrchestrationWorkItem workItem)
         {
             await RetryHelper.ExecuteWithRetryOnTransient(async () =>
             {
@@ -474,10 +449,7 @@ namespace DurableTask.AzureServiceFabric
             return Task.CompletedTask;
         }
 
-        public Task<TaskActivityWorkItem> RenewTaskActivityWorkItemLockAsync(TaskActivityWorkItem workItem)
-        {
-            return Task.FromResult(workItem);
-        }
+        public Task<TaskActivityWorkItem> RenewTaskActivityWorkItemLockAsync(TaskActivityWorkItem workItem) => Task.FromResult(workItem);
 
         int GetTaskScheduledId(HistoryEvent historyEvent)
         {

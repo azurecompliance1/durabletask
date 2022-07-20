@@ -22,7 +22,7 @@ namespace DurableTask.Core.Logging
     public static class LoggingExtensions
     {
         /// <summary>
-        /// Writes an <see cref="ILogEvent"/> to the provider <see cref="ILogger"/> and 
+        /// Writes an <see cref="ILogEvent"/> to the provider <see cref="ILogger"/> and
         /// </summary>
         /// <param name="logger">The logger to write to.</param>
         /// <param name="logEvent">The event to be logged.</param>

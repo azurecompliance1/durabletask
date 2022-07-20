@@ -35,9 +35,9 @@ namespace DurableTask.Emulator.Tests
         ////[TestMethod]
         public async Task MockOrchestrationTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(SimplestGreetingsOrchestration))
                 .AddTaskActivities(typeof(SimplestGetUserTask), typeof(SimplestSendGreetingTask))
@@ -59,9 +59,8 @@ namespace DurableTask.Emulator.Tests
         ////[TestMethod]
         public async Task MockRecreateOrchestrationTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
-
-            var worker = new TaskHubWorker(orchestrationService);
+            using var orchestrationService = new LocalOrchestrationService();
+            using var worker = new TaskHubWorker(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(SimplestGreetingsOrchestration))
                 .AddTaskActivities(typeof(SimplestGetUserTask), typeof(SimplestSendGreetingTask))
@@ -80,7 +79,7 @@ namespace DurableTask.Emulator.Tests
 
             SimplestGreetingsOrchestration.Result = String.Empty;
 
-            OrchestrationInstance id2 = await client.CreateOrchestrationInstanceAsync(typeof(SimplestGreetingsOrchestration), id.InstanceId, null, new OrchestrationStatus[] { });
+            OrchestrationInstance id2 = await client.CreateOrchestrationInstanceAsync(typeof(SimplestGreetingsOrchestration), id.InstanceId, null, Array.Empty<OrchestrationStatus>());
             result = await client.WaitForOrchestrationAsync(id2, TimeSpan.FromSeconds(30), new CancellationToken());
             Assert.AreEqual(OrchestrationStatus.Completed, result.OrchestrationStatus);
 
@@ -93,9 +92,9 @@ namespace DurableTask.Emulator.Tests
         [TestMethod]
         public async Task MockTimerTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(SimplestGreetingsOrchestration))
                 .AddTaskActivities(typeof(SimplestGetUserTask), typeof(SimplestSendGreetingTask))
@@ -120,9 +119,9 @@ namespace DurableTask.Emulator.Tests
         [TestMethod]
         public async Task MockRepeatTimerTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(GreetingsRepeatWaitOrchestration))
                 .AddTaskActivities(typeof(SimplestGetUserTask), typeof(SimplestSendGreetingTask))
@@ -151,9 +150,9 @@ namespace DurableTask.Emulator.Tests
             GenerationBasicOrchestration.Result = 0;
             GenerationBasicTask.GenerationCount = 0;
 
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
             var client = new TaskHubClient(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(GenerationBasicOrchestration))
@@ -179,9 +178,9 @@ namespace DurableTask.Emulator.Tests
         ////[TestMethod]
         public async Task MockSubOrchestrationTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
             var client = new TaskHubClient(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(ParentWorkflow), typeof(ChildWorkflow))
@@ -214,9 +213,9 @@ namespace DurableTask.Emulator.Tests
         [TestMethod]
         public async Task MockRaiseEventTest()
         {
-            var orchestrationService = new LocalOrchestrationService();
+            using var orchestrationService = new LocalOrchestrationService();
 
-            var worker = new TaskHubWorker(orchestrationService);
+            using var worker = new TaskHubWorker(orchestrationService);
             var client = new TaskHubClient(orchestrationService);
 
             await worker.AddTaskOrchestrations(typeof(GenerationSignalOrchestration))

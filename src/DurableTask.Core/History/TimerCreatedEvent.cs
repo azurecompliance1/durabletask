@@ -23,10 +23,7 @@ namespace DurableTask.Core.History
     public class TimerCreatedEvent : HistoryEvent
     {
         // Private ctor for JSON deserialization (required by some storage providers and out-of-proc executors)
-        TimerCreatedEvent()
-            : base(-1)
-        {
-        }
+        TimerCreatedEvent() : base(-1) { }
 
         /// <summary>
         /// Creates a new <see cref="TimerCreatedEvent"/> with the supplied event ID
@@ -34,8 +31,7 @@ namespace DurableTask.Core.History
         /// </summary>
         /// <param name="eventId">The ID of the timer event.</param>
         /// <param name="fireAt">The time at which the timer should fire.</param>
-        public TimerCreatedEvent(int eventId, DateTime fireAt)
-            : base(eventId)
+        public TimerCreatedEvent(int eventId, DateTime fireAt) : base(eventId)
         {
             this.FireAt = fireAt;
         }
@@ -44,10 +40,7 @@ namespace DurableTask.Core.History
         /// Creates a new TimerCreatedEvent with the supplied event id
         /// </summary>
         /// <param name="eventId"></param>
-        public TimerCreatedEvent(int eventId)
-            : base(eventId)
-        {
-        }
+        public TimerCreatedEvent(int eventId) : base(eventId) { }
 
         /// <summary>
         /// Gets the event type

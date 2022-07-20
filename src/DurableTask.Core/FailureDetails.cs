@@ -15,7 +15,9 @@ namespace DurableTask.Core
 {
     using System;
     using System.Runtime.Serialization;
+
     using DurableTask.Core.Exceptions;
+
     using Newtonsoft.Json;
 
     /// <summary>
@@ -99,10 +101,7 @@ namespace DurableTask.Core
         /// <summary>
         /// Gets a debug-friendly description of the failure information.
         /// </summary>
-        public override string ToString()
-        {
-            return $"{this.ErrorType}: {this.ErrorMessage}";
-        }
+        public override string ToString() => $"{this.ErrorType}: {this.ErrorMessage}";
 
         /// <summary>
         /// Returns <c>true</c> if the task failure was provided by the specified exception type.
@@ -143,10 +142,7 @@ namespace DurableTask.Core
         }
 
         /// <inheritdoc/>
-        public override int GetHashCode()
-        {
-            return (ErrorType, ErrorMessage, StackTrace, InnerFailure).GetHashCode();
-        }
+        public override int GetHashCode() => (ErrorType, ErrorMessage, StackTrace, InnerFailure).GetHashCode();
 
         static string GetErrorMessage(Exception e)
         {
@@ -160,9 +156,6 @@ namespace DurableTask.Core
             }
         }
 
-        static FailureDetails? FromException(Exception? e)
-        {
-            return e == null ? null : new FailureDetails(e);
-        }
+        static FailureDetails? FromException(Exception? e) => e is null ? null : new FailureDetails(e);
     }
 }

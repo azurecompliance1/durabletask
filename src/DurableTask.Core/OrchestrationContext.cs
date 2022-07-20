@@ -28,7 +28,7 @@ namespace DurableTask.Core
         /// <summary>
         /// Used in generating proxy interfaces and classes.
         /// </summary>
-        private static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
+        static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
 
         /// <summary>
         /// Thread-static variable used to signal whether the calling thread is the orchestrator thread.
@@ -72,10 +72,7 @@ namespace DurableTask.Core
         /// </summary>
         /// <typeparam name="T">The interface for the proxy client</typeparam>
         /// <returns></returns>
-        public virtual T CreateClient<T>() where T : class
-        {
-            return CreateClient<T>(false);
-        }
+        public virtual T CreateClient<T>() where T : class => CreateClient<T>(false);
 
         /// <summary>
         ///     Create a proxy client class to schedule remote TaskActivities via a strongly typed interface.
@@ -121,6 +118,7 @@ namespace DurableTask.Core
         /// <param name="retryOptions">Retry policies</param>
         /// <returns>Dynamic proxy that can be used to schedule the remote tasks</returns>
         public virtual T CreateRetryableClient<T>(RetryOptions retryOptions) where T : class
+
         {
             return CreateRetryableClient<T>(retryOptions, false);
         }
@@ -173,8 +171,8 @@ namespace DurableTask.Core
         /// <param name="retryOptions">Retry policy</param>
         /// <param name="parameters">Parameters for the TaskActivity.Execute method</param>
         /// <returns>Task that represents the execution of the specified TaskActivity</returns>
-        public virtual Task<T> ScheduleWithRetry<T>(Type taskActivityType, RetryOptions retryOptions,
-            params object[] parameters)
+        public virtual Task<T> ScheduleWithRetry<T>(
+            Type taskActivityType, RetryOptions retryOptions, params object[] parameters)
         {
             return ScheduleWithRetry<T>(NameVersionHelper.GetDefaultName(taskActivityType),
                 NameVersionHelper.GetDefaultVersion(taskActivityType),

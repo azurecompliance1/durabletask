@@ -23,12 +23,10 @@ namespace DurableTask.AzureServiceFabric.Remote
     using System.Threading;
     using System.Threading.Tasks;
     using System.Web;
-
-    using DurableTask.Core;
-    using DurableTask.Core.Exceptions;
     using DurableTask.AzureServiceFabric.Exceptions;
     using DurableTask.AzureServiceFabric.Models;
-
+    using DurableTask.Core;
+    using DurableTask.Core.Exceptions;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
@@ -37,12 +35,11 @@ namespace DurableTask.AzureServiceFabric.Remote
     /// </summary>
     public class RemoteOrchestrationServiceClient : IOrchestrationServiceClient, IDisposable
     {
-        private const int PartitionResolutionRetryCount = 3;
-        private static readonly TimeSpan PartitionResolutionRetryDelay = TimeSpan.FromSeconds(3);
+        const int PartitionResolutionRetryCount = 3;
+        static readonly TimeSpan PartitionResolutionRetryDelay = TimeSpan.FromSeconds(3);
 
-        private readonly IPartitionEndpointResolver partitionProvider;
-        private readonly int maxPollDelayInSecs = 10;
-        private HttpClient httpClient;
+        readonly IPartitionEndpointResolver partitionProvider;
+        readonly int maxPollDelayInSecs = 10;
 
         /// <summary>
         /// Creates a new instance.
@@ -50,7 +47,7 @@ namespace DurableTask.AzureServiceFabric.Remote
         public RemoteOrchestrationServiceClient(IPartitionEndpointResolver partitionProvider)
         {
             this.partitionProvider = partitionProvider;
-            this.httpClient = new HttpClient();
+            this.HttpClient = new HttpClient();
         }
 
         /// <summary>
@@ -59,23 +56,13 @@ namespace DurableTask.AzureServiceFabric.Remote
         public RemoteOrchestrationServiceClient(IPartitionEndpointResolver partitionProvider, HttpClientHandler httpClientHandler = null)
         {
             this.partitionProvider = partitionProvider;
-            this.httpClient = new HttpClient(httpClientHandler);
+            this.HttpClient = new HttpClient(httpClientHandler);
         }
 
         /// <summary>
         /// HttpClient for making REST calls.
         /// </summary>
-        public HttpClient HttpClient
-        {
-            get
-            {
-                return this.httpClient;
-            }
-            set
-            {
-                this.httpClient = value;
-            }
-        }
+        public HttpClient HttpClient { get; set; }
 
         /// <summary>
         /// Creates a new orchestration
@@ -83,10 +70,7 @@ namespace DurableTask.AzureServiceFabric.Remote
         /// <param name="creationMessage">Orchestration creation message</param>
         /// <exception cref="OrchestrationAlreadyExistsException">Will throw an OrchestrationAlreadyExistsException exception If any orchestration with the same instance Id exists in the instance store.</exception>
         /// <returns></returns>
-        public Task CreateTaskOrchestrationAsync(TaskMessage creationMessage)
-        {
-            return this.CreateTaskOrchestrationAsync(creationMessage, null);
-        }
+        public Task CreateTaskOrchestrationAsync(TaskMessage creationMessage) => this.CreateTaskOrchestrationAsync(creationMessage, null);
 
         /// <summary>
         /// Creates a new orchestration and specifies a subset of states which should be de duplicated on in the client side
@@ -268,21 +252,21 @@ namespace DurableTask.AzureServiceFabric.Remote
 
         #region Prepare url fragments for the requests
 
-        private string GetHistoryFragment() => "history";
+        string GetHistoryFragment() => "history";
 
-        private string GetHistoryFragment(string orchestrationId) => $"history/{orchestrationId}";
+        string GetHistoryFragment(string orchestrationId) => $"history/{orchestrationId}";
 
-        private string GetOrchestrationFragment() => "orchestrations";
+        string GetOrchestrationFragment() => "orchestrations";
 
-        private string GetOrchestrationFragment(string orchestrationId) => $"orchestrations/{orchestrationId}";
+        string GetOrchestrationFragment(string orchestrationId) => $"orchestrations/{orchestrationId}";
 
-        private string GetMessageFragment() => "messages";
+        string GetMessageFragment() => "messages";
 
-        private string GetMessageFragment(long messageId) => $"messages/{messageId}";
+        string GetMessageFragment(long messageId) => $"messages/{messageId}";
 
         #endregion Prepare url fragments for the requests
 
-        private async Task<string> GetStringResponseAsync(string instanceId, string fragment, CancellationToken cancellationToken)
+        async Task<string> GetStringResponseAsync(string instanceId, string fragment, CancellationToken cancellationToken)
         {
             using (var response = await this.ExecuteRequestWithRetriesAsync(
                 instanceId,
@@ -299,7 +283,7 @@ namespace DurableTask.AzureServiceFabric.Remote
             }
         }
 
-        private async Task PutJsonAsync(string instanceId, string fragment, object @object, CancellationToken cancellationToken)
+        async Task PutJsonAsync(string instanceId, string fragment, object @object, CancellationToken cancellationToken)
         {
             var mediaFormatter = new JsonMediaTypeFormatter()
             {
@@ -326,14 +310,14 @@ namespace DurableTask.AzureServiceFabric.Remote
             }
         }
 
-        private async Task<IEnumerable<Uri>> GetAllEndpointsAsync(CancellationToken cancellationToken)
+        async Task<IEnumerable<Uri>> GetAllEndpointsAsync(CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             IEnumerable<string> endpoints = await this.partitionProvider.GetPartitionEndpointsAsync(cancellationToken);
             return endpoints.Select(GetDefaultEndPoint).Select(x => new Uri(x));
         }
 
-        private string GetDefaultEndPoint(string endpoint)
+        string GetDefaultEndPoint(string endpoint)
         {
             // sample endpoint - {"Endpoints":{"":"http:\/\/10.91.42.35:30001"}}
             var jObject = JObject.Parse(endpoint);
@@ -341,7 +325,7 @@ namespace DurableTask.AzureServiceFabric.Remote
             return defaultEndPoint;
         }
 
-        private async Task<HttpResponseMessage> ExecuteRequestWithRetriesAsync(string instanceId, Func<Uri, Task<HttpResponseMessage>> requestAsync, CancellationToken cancellationToken)
+        async Task<HttpResponseMessage> ExecuteRequestWithRetriesAsync(string instanceId, Func<Uri, Task<HttpResponseMessage>> requestAsync, CancellationToken cancellationToken)
         {
             instanceId.EnsureValidInstanceId();
 
@@ -400,7 +384,7 @@ namespace DurableTask.AzureServiceFabric.Remote
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // To detect redundant calls
+        bool disposedValue = false; // To detect redundant calls
 
         /// <inheritdoc />
         protected virtual void Dispose(bool disposing)
@@ -409,7 +393,7 @@ namespace DurableTask.AzureServiceFabric.Remote
             {
                 if (disposing)
                 {
-                    this.httpClient.Dispose();
+                    this.HttpClient.Dispose();
                 }
 
                 disposedValue = true;
@@ -417,10 +401,7 @@ namespace DurableTask.AzureServiceFabric.Remote
         }
 
         /// <inheritdoc />
-        public void Dispose()
-        {
-            Dispose(true);
-        }
+        public void Dispose() => Dispose(true);
         #endregion
     }
 }

@@ -26,19 +26,10 @@ namespace DurableTask.AzureServiceFabric.TaskHelpers
             this.pendingAttempts = maxNumberOfAttempts;
         }
 
-        public bool ShouldExecute()
-        {
-            return this.pendingAttempts-- > 0;
-        }
+        public bool ShouldExecute() => this.pendingAttempts-- > 0;
 
-        public TimeSpan GetNextDelay()
-        {
-            return this.pendingAttempts < 1 ? TimeSpan.Zero : this.delay;
-        }
+        public TimeSpan GetNextDelay() => this.pendingAttempts < 1 ? TimeSpan.Zero : this.delay;
 
-        public static IRetryPolicy GetNewDefaultPolicy()
-        {
-            return new CountBasedFixedDelayRetryPolicy(3, TimeSpan.FromMilliseconds(100));
-        }
+        public static IRetryPolicy GetNewDefaultPolicy() => new CountBasedFixedDelayRetryPolicy(3, TimeSpan.FromMilliseconds(100));
     }
 }

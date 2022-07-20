@@ -24,14 +24,10 @@ namespace DurableTask.AzureServiceFabric.Stores
     {
         readonly ConcurrentQueue<string> inMemoryQueue = new ConcurrentQueue<string>();
 
-        public ActivityProvider(IReliableStateManager stateManager, string storeName, CancellationToken token) : base(stateManager, storeName, token)
-        {
-        }
+        public ActivityProvider(IReliableStateManager stateManager, string storeName, CancellationToken token)
+            : base(stateManager, storeName, token) { }
 
-        protected override void AddItemInMemory(string key, TaskMessageItem value)
-        {
-            this.inMemoryQueue.Enqueue(key);
-        }
+        protected override void AddItemInMemory(string key, TaskMessageItem value) => this.inMemoryQueue.Enqueue(key);
 
         public async Task<Message<string, TaskMessageItem>> ReceiveAsync(TimeSpan receiveTimeout)
         {

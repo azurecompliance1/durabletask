@@ -25,7 +25,7 @@ namespace DurableTask.ServiceBus.Tracking
     using DurableTask.Core.Tracing;
     using DurableTask.Core.Tracking;
 
-    internal class JumpStartManager
+    class JumpStartManager
     {
         readonly ServiceBusOrchestrationService service;
         readonly TimeSpan interval;

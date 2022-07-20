@@ -21,11 +21,10 @@ namespace DurableTask.AzureServiceFabric
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using DurableTask.Core;
-    using DurableTask.Core.Tracking;
     using DurableTask.AzureServiceFabric.TaskHelpers;
     using DurableTask.AzureServiceFabric.Tracing;
+    using DurableTask.Core;
+    using DurableTask.Core.Tracking;
     using Microsoft.ServiceFabric.Data;
     using Microsoft.ServiceFabric.Data.Collections;
 
@@ -246,84 +245,68 @@ namespace DurableTask.AzureServiceFabric
             }
         }
 
-        string GetKey(string instanceId, string executionId)
-        {
-            return string.Concat(instanceId, "_", executionId);
-        }
+        string GetKey(string instanceId, string executionId) => string.Concat(instanceId, "_", executionId);
 
-        string GetDictionaryKeyFromTimeFormat(DateTime time)
-        {
-            return GetInstanceStoreBackupDictionaryKey(time, TimeFormatString);
-        }
+        string GetDictionaryKeyFromTimeFormat(DateTime time) => GetInstanceStoreBackupDictionaryKey(time, TimeFormatString);
 
-        string GetDictionaryKeyFromTimePrefixFormat(DateTime time)
-        {
-            return GetInstanceStoreBackupDictionaryKey(time, TimeFormatStringPrefix);
-        }
+        string GetDictionaryKeyFromTimePrefixFormat(DateTime time) => GetInstanceStoreBackupDictionaryKey(time, TimeFormatStringPrefix);
 
         string GetInstanceStoreBackupDictionaryKey(DateTime time, string formatString)
         {
             return InstanceStoreCollectionNamePrefix + time.ToString(formatString);
         }
 
-        Task CleanupDayOldDictionariesAsync()
+        Task CleanupDayOldDictionariesAsync() => Utils.RunBackgroundJob(async () =>
         {
-            return Utils.RunBackgroundJob(async () =>
+            var purgeTime = GetDictionaryKeyFromTimePrefixFormat(DateTime.UtcNow - TimeSpan.FromDays(1));
+
+            for (int i = 0; i < 24; i++)
             {
-                var purgeTime = GetDictionaryKeyFromTimePrefixFormat(DateTime.UtcNow - TimeSpan.FromDays(1));
+                await this.stateManager.RemoveAsync($"{purgeTime}{i:D2}");
+            }
+        }, initialDelay: TimeSpan.FromMinutes(5), delayOnSuccess: TimeSpan.FromHours(12), delayOnException: TimeSpan.FromHours(1), actionName: $"{nameof(CleanupDayOldDictionariesAsync)}", token: this.cancellationToken);
 
-                for (int i = 0; i < 24; i++)
-                {
-                    await this.stateManager.RemoveAsync($"{purgeTime}{i:D2}");
-                }
-            }, initialDelay: TimeSpan.FromMinutes(5), delayOnSuccess: TimeSpan.FromHours(12), delayOnException: TimeSpan.FromHours(1), actionName: $"{nameof(CleanupDayOldDictionariesAsync)}", token: this.cancellationToken);
-        }
-
-        Task CleanupOldDictionariesAsync()
+        Task CleanupOldDictionariesAsync() => Utils.RunBackgroundJob(async () =>
         {
-            return Utils.RunBackgroundJob(async () =>
-            {
-                List<string> toDelete = new List<string>();
-                List<string> toKeep = new List<string>();
-                var currentTime = DateTime.UtcNow;
-                var ttl = TimeSpan.FromDays(1);
+            List<string> toDelete = new List<string>();
+            List<string> toKeep = new List<string>();
+            var currentTime = DateTime.UtcNow;
+            var ttl = TimeSpan.FromDays(1);
 
-                var enumerationTime = await Utils.MeasureAsync(async () =>
+            var enumerationTime = await Utils.MeasureAsync(async () =>
+            {
+                var enumerator = this.stateManager.GetAsyncEnumerator();
+                while (await enumerator.MoveNextAsync(this.cancellationToken))
                 {
-                    var enumerator = this.stateManager.GetAsyncEnumerator();
-                    while (await enumerator.MoveNextAsync(this.cancellationToken))
+                    var storeName = enumerator.Current.Name.AbsolutePath.Trim('/');
+                    if (storeName.StartsWith(InstanceStoreCollectionNamePrefix))
                     {
-                        var storeName = enumerator.Current.Name.AbsolutePath.Trim('/');
-                        if (storeName.StartsWith(InstanceStoreCollectionNamePrefix))
+                        var stringDate = storeName.Substring(InstanceStoreCollectionNamePrefix.Length);
+                        if (DateTime.TryParseExact(stringDate, TimeFormatString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var storeTime)
+                            && (currentTime - storeTime > ttl))
                         {
-                            DateTime storeTime;
-                            var stringDate = storeName.Substring(InstanceStoreCollectionNamePrefix.Length);
-                            if (DateTime.TryParseExact(stringDate, TimeFormatString, CultureInfo.InvariantCulture, DateTimeStyles.None, out storeTime)
-                                && (currentTime - storeTime > ttl))
-                            {
-                                toDelete.Add(storeName);
-                                continue;
-                            }
+                            toDelete.Add(storeName);
+                            continue;
                         }
-
-                        toKeep.Add(storeName);
                     }
-                });
-                ServiceFabricProviderEventSource.Tracing.LogTimeTaken($"Enumerating all reliable states (count: {toDelete.Count + toKeep.Count})", enumerationTime.TotalMilliseconds);
 
-                ServiceFabricProviderEventSource.Tracing.ReliableStateManagement($"Deleting {toDelete.Count} stores", String.Join(",", toDelete));
-                ServiceFabricProviderEventSource.Tracing.ReliableStateManagement($"All remaining {toKeep.Count} stores", String.Join(",", toKeep));
-
-                foreach (var storeName in toDelete)
-                {
-                    var deleteTime = await Utils.MeasureAsync(async () =>
-                    {
-                        await this.stateManager.RemoveAsync(storeName);
-                    });
-                    ServiceFabricProviderEventSource.Tracing.LogTimeTaken($"Deleting reliable state {storeName}", deleteTime.TotalMilliseconds);
+                    toKeep.Add(storeName);
                 }
-            }, initialDelay: TimeSpan.FromMinutes(5), delayOnSuccess: TimeSpan.FromHours(1), delayOnException: TimeSpan.FromMinutes(10), actionName: $"{nameof(CleanupOldDictionariesAsync)}", token: this.cancellationToken);
-        }
+            });
+            ServiceFabricProviderEventSource.Tracing.LogTimeTaken($"Enumerating all reliable states (count: {toDelete.Count + toKeep.Count})", enumerationTime.TotalMilliseconds);
+
+            ServiceFabricProviderEventSource.Tracing.ReliableStateManagement($"Deleting {toDelete.Count} stores", String.Join(",", toDelete));
+            ServiceFabricProviderEventSource.Tracing.ReliableStateManagement($"All remaining {toKeep.Count} stores", String.Join(",", toKeep));
+
+            foreach (var storeName in toDelete)
+            {
+                var deleteTime = await Utils.MeasureAsync(async () =>
+                {
+                    await this.stateManager.RemoveAsync(storeName);
+                });
+                ServiceFabricProviderEventSource.Tracing.LogTimeTaken($"Deleting reliable state {storeName}", deleteTime.TotalMilliseconds);
+            }
+        }, initialDelay: TimeSpan.FromMinutes(5), delayOnSuccess: TimeSpan.FromHours(1), delayOnException: TimeSpan.FromMinutes(10), actionName: $"{nameof(CleanupOldDictionariesAsync)}", token: this.cancellationToken);
 
         async Task EnsureStoreInitializedAsync()
         {

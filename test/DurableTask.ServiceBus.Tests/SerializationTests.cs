@@ -529,7 +529,7 @@ namespace DurableTask.ServiceBus.Tests
         }
 
         [SuppressMessage("ReSharper", "MemberCanBePrivate.Local")]
-        sealed class PrimitiveTypeActivitiesOrchestration : TaskOrchestration<string, PrimitiveTypeOrchestrationInput>
+sealed class PrimitiveTypeActivitiesOrchestration : TaskOrchestration<string, PrimitiveTypeOrchestrationInput>
         {
             // HACK: This is just a hack to communicate result of orchestration back to test
             public static byte Byte { get; set; }
@@ -840,7 +840,7 @@ namespace DurableTask.ServiceBus.Tests
             public float Property { get; set; }
         }
 
-        private sealed class GenericMethodImplementation : IGenericMethodInterface
+        sealed class GenericMethodImplementation : IGenericMethodInterface
         {
             public Task<U[]> GetWhenMultipleGenericTypes<T, U>(T input1, U input2)
             {
@@ -856,8 +856,10 @@ namespace DurableTask.ServiceBus.Tests
             {
                 input3.Add(input);
                 input3.AddRange(input2);
-                var result = new Dictionary<int, List<T>>();
-                result.Add(1, input3);
+                var result = new Dictionary<int, List<T>>
+                {
+                    { 1, input3 }
+                };
 
                 return Task.FromResult(result);
             }
@@ -913,7 +915,7 @@ namespace DurableTask.ServiceBus.Tests
             public Task<T[]> Run<T>();
         }
 
-        private sealed class InterfaceOrClassImpl : ClassClient, IInterfaceClient
+        sealed class InterfaceOrClassImpl : ClassClient, IInterfaceClient
         {
             public override Task<T[]> Run<T>()
             {

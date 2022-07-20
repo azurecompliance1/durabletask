@@ -25,15 +25,16 @@ namespace DurableTask.Core.Tests
     public class ExceptionHandlingIntegrationTests
     {
         static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(Debugger.IsAttached ? 300 : 10);
-
         readonly TaskHubWorker worker;
         readonly TaskHubClient client;
 
         public ExceptionHandlingIntegrationTests()
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             var service = new LocalOrchestrationService();
             this.worker = new TaskHubWorker(service);
             this.client = new TaskHubClient(service);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         [DataTestMethod]
@@ -141,7 +142,7 @@ namespace DurableTask.Core.Tests
                 string activityName = typeof(ThrowInvalidOperationException).FullName!;
                 string expectedOutput = $"{typeof(TaskFailedException).FullName}: Task '{activityName}' (#0) failed with an unhandled exception: {expectedErrorMessage}";
                 Assert.AreEqual(expectedOutput, state.Output);
-           }
+            }
             else
             {
                 Assert.Fail($"Unexpected {nameof(ErrorPropagationMode)} value: {mode}");

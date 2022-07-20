@@ -72,8 +72,8 @@ namespace DurableTask.Core.Tracing
                 () => DefaultEventSource.Log.TraceEvent(
                     eventLevel,
                     Source,
-                    orchestrationInstance == null ? string.Empty : orchestrationInstance.InstanceId,
-                    orchestrationInstance == null ? string.Empty : orchestrationInstance.ExecutionId,
+                    orchestrationInstance is null ? string.Empty : orchestrationInstance.InstanceId,
+                    orchestrationInstance is null ? string.Empty : orchestrationInstance.ExecutionId,
                     string.Empty,
                     FormatString(format, args),
                     eventType));
@@ -89,8 +89,8 @@ namespace DurableTask.Core.Tracing
                 () => DefaultEventSource.Log.TraceEvent(
                     eventLevel,
                     Source,
-                    orchestrationInstance == null ? string.Empty : orchestrationInstance.InstanceId,
-                    orchestrationInstance == null ? string.Empty : orchestrationInstance.ExecutionId,
+                    orchestrationInstance is null ? string.Empty : orchestrationInstance.InstanceId,
+                    orchestrationInstance is null ? string.Empty : orchestrationInstance.ExecutionId,
                     string.Empty,
                     generateMessage(),
                     eventType));
@@ -226,7 +226,7 @@ namespace DurableTask.Core.Tracing
 
         static string FormatString(string formatted, params object[] args)
         {
-            if (args == null || args.Length == 0)
+            if (args is null || args.Length == 0)
             {
                 return formatted;
             }

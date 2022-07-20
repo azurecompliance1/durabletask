@@ -41,5 +41,4 @@ namespace Correlation.Samples
             return null;
         }
     }
-
 }

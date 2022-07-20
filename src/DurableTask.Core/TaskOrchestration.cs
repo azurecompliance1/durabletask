@@ -71,10 +71,7 @@ namespace DurableTask.Core
         /// <summary>
         /// Creates a new TaskOrchestration with the default DataConverter
         /// </summary>
-        protected TaskOrchestration()
-        {
-            DataConverter = JsonDataConverter.Default;
-        }
+        protected TaskOrchestration() => DataConverter = JsonDataConverter.Default;
 
         /// <summary>
         /// The DataConverter to use for input and output serialization/deserialization
@@ -162,9 +159,6 @@ namespace DurableTask.Core
         /// Method for getting typed status of the orchestration
         /// </summary>
         /// <returns>The typed status</returns>
-        public virtual TStatus OnGetStatus()
-        {
-            return default(TStatus);
-        }
+        public virtual TStatus OnGetStatus() => default(TStatus);
     }
 }

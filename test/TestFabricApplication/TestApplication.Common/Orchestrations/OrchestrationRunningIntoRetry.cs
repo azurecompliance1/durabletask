@@ -21,7 +21,7 @@ namespace TestApplication.Common.Orchestrations
 
     public class OrchestrationRunningIntoRetry : TaskOrchestration<int, int>
     {
-        CounterException LatestException;
+        CounterException latestException;
 
         public override async Task<int> RunTask(OrchestrationContext context, int numberOfRetriesToEnforce)
         {
@@ -32,7 +32,7 @@ namespace TestApplication.Common.Orchestrations
                 Handle = RetryExceptionHandler
             };
             ITestTasks testTasks = context.CreateRetryableClient<ITestTasks>(retryOptions);
-            var result = await testTasks.ThrowExceptionAsync(this.LatestException?.Counter - 1 ?? numberOfRetriesToEnforce);
+            var result = await testTasks.ThrowExceptionAsync(this.latestException?.Counter - 1 ?? numberOfRetriesToEnforce);
 
             if (result)
             {
@@ -54,7 +54,7 @@ namespace TestApplication.Common.Orchestrations
             CounterException ce = e as CounterException;
             if (ce != null)
             {
-                LatestException = ce;
+                latestException = ce;
                 return true;
             }
 

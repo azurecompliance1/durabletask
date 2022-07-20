@@ -149,7 +149,7 @@ namespace DurableTask.ServiceBus.Tests
             {
                 if (input == null || input.Length != 3)
                 {
-                    throw new ArgumentException("input");
+                    throw new ArgumentException("input Length cannot be other than 3", nameof(input));
                 }
 
                 int start = input[0];
@@ -192,7 +192,7 @@ namespace DurableTask.ServiceBus.Tests
             {
                 if (chunk == null || chunk.Length != 2)
                 {
-                    throw new ArgumentException("chunk");
+                    throw new ArgumentException("Chunk cannot have Length other than 2", nameof(chunk));
                 }
 
                 Console.WriteLine("Compute Sum for " + chunk[0] + "," + chunk[1]);

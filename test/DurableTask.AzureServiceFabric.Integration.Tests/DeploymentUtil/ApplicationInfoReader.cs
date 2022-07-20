@@ -20,18 +20,15 @@ namespace DurableTask.AzureServiceFabric.Integration.Tests.DeploymentUtil
 
     class ApplicationInfoReader
     {
-        string applicationRootPath;
-        string applicationPackagePath;
-
+        readonly string applicationRootPath;
+        readonly string applicationPackagePath;
         readonly XmlElement applicationManifestRoot;
         readonly XmlNamespaceManager applicationManifestNamespaceManager;
         readonly XmlElement serviceManifestRoot;
         readonly XmlNamespaceManager serviceManifestNamespaceManager;
-
         const string ApplicationManifestNodePath = "/sf:ApplicationManifest";
         const string ApplicationNameAttribute = "ApplicationTypeName";
         const string ApplicationVersionAttribute = "ApplicationTypeVersion";
-
         const string StatefulServiceNodePath = "/sf:ServiceManifest/sf:ServiceTypes/sf:StatefulServiceType";
         const string StatelessServiceNodePath = "/sf:ServiceManifest/sf:ServiceTypes/sf:StatelessServiceType";
         const string ServiceTypeNameAttribute = "ServiceTypeName";

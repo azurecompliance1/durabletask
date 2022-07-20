@@ -29,90 +29,78 @@ namespace DurableTask.Core
         const string RequestTrackEvent = "RequestEvent";
         const string DependencyTrackEvent = "DependencyEvent";
         const string ExceptionEvent = "ExceptionEvent";
-        static DiagnosticSource logger = new DiagnosticListener(DiagnosticSourceName);
-        static IDisposable applicationInsightsSubscription = null;
-        static IDisposable listenerSubscription = null;
+        static readonly DiagnosticSource Logger = new DiagnosticListener(DiagnosticSourceName);
+        static IDisposable ApplicationInsightsSubscription = null;
+        static IDisposable ListenerSubscription = null;
 
         /// <summary>
         /// Setup this class uses callbacks to enable send telemetry to the Application Insights.
-        /// You need to call this method if you want to use this class. 
+        /// You need to call this method if you want to use this class.
         /// </summary>
         /// <param name="trackRequestTelemetryAction">Action to send request telemetry using <see cref="Activity"></see></param>
         /// <param name="trackDependencyTelemetryAction">Action to send telemetry for <see cref="Activity"/></param>
         /// <param name="trackExceptionAction">Action to send telemetry for exception </param>
         public static void SetUp(
-            Action<TraceContextBase> trackRequestTelemetryAction, 
-            Action<TraceContextBase> trackDependencyTelemetryAction, 
+            Action<TraceContextBase> trackRequestTelemetryAction,
+            Action<TraceContextBase> trackDependencyTelemetryAction,
             Action<Exception> trackExceptionAction)
         {
-            listenerSubscription = DiagnosticListener.AllListeners.Subscribe(
-                    delegate (DiagnosticListener listener)
+            ListenerSubscription = DiagnosticListener.AllListeners.Subscribe(
+                delegate (DiagnosticListener listener)
+                {
+                    if (listener.Name == DiagnosticSourceName)
                     {
-                        if (listener.Name == DiagnosticSourceName)
+                        ApplicationInsightsSubscription?.Dispose();
+
+                        ApplicationInsightsSubscription = listener.Subscribe((KeyValuePair<string, object> evt) =>
                         {
-                            applicationInsightsSubscription?.Dispose();
-
-                            applicationInsightsSubscription = listener.Subscribe((KeyValuePair<string, object> evt) =>
+                            if (evt.Key == RequestTrackEvent)
                             {
-                                if (evt.Key == RequestTrackEvent)
-                                {
-                                    var context = (TraceContextBase)evt.Value;
-                                    trackRequestTelemetryAction(context);
-                                }
+                                var context = (TraceContextBase)evt.Value;
+                                trackRequestTelemetryAction(context);
+                            }
 
-                                if (evt.Key == DependencyTrackEvent)
-                                {
-                                    // the parameter is DependencyTelemetry which is already stopped. 
-                                    var context = (TraceContextBase)evt.Value;
-                                    trackDependencyTelemetryAction(context);
-                                }
+                            if (evt.Key == DependencyTrackEvent)
+                            {
+                                // the parameter is DependencyTelemetry which is already stopped.
+                                var context = (TraceContextBase)evt.Value;
+                                trackDependencyTelemetryAction(context);
+                            }
 
-                                if (evt.Key == ExceptionEvent)
-                                {
-                                    var e = (Exception)evt.Value;
-                                    trackExceptionAction(e);
-                                }
-                            });
-                        }
-                    });
+                            if (evt.Key == ExceptionEvent)
+                            {
+                                var e = (Exception)evt.Value;
+                                trackExceptionAction(e);
+                            }
+                        });
+                    }
+                });
         }
 
         /// <summary>
         /// Track the RequestTelemetry
         /// </summary>
         /// <param name="context"></param>
-        public static void TrackRequestTelemetry(TraceContextBase context)
-        {
-            Tracking(() => logger.Write(RequestTrackEvent, context));
-        }
+        public static void TrackRequestTelemetry(TraceContextBase context) => Tracking(() => Logger.Write(RequestTrackEvent, context));
 
         /// <summary>
         /// Track the DependencyTelemetry
         /// </summary>
         /// <param name="context"></param>
-        public static void TrackDepencencyTelemetry(TraceContextBase context)
-        {
-            Tracking(() => logger.Write(DependencyTrackEvent, context));
-        }
+        public static void TrackDepencencyTelemetry(TraceContextBase context) => Tracking(() => Logger.Write(DependencyTrackEvent, context));
 
         /// <summary>
         /// Track the Exception
         /// </summary>
         /// <param name="e"></param>
-        public static void TrackException(Exception e)
-        {
-            Tracking(() => logger.Write(ExceptionEvent, e));
-        }
+        public static void TrackException(Exception e) => Tracking(() => Logger.Write(ExceptionEvent, e));
 
         /// <summary>
         /// Execute Action for Propagate correlation information.
         /// It suppresses the execution when <see cref="CorrelationSettings"/>.DisablePropagation is true.
         /// </summary>
         /// <param name="action"></param>
-        public static void Propagate(Action action)
-        {
-            Execute(action);
-        }
+        public static void Propagate(Action action) => Execute(action);
 
         /// <summary>
         /// Execute Aysnc Function for propagete correlation information
@@ -125,17 +113,14 @@ namespace DurableTask.Core
             if (CorrelationSettings.Current.EnableDistributedTracing)
             {
                 return func();
-            } 
+            }
             else
             {
                 return Task.CompletedTask;
             }
         }
 
-        static void Tracking(Action tracking)
-        {
-            Execute(tracking);
-        }
+        static void Tracking(Action tracking) => Execute(tracking);
 
         static void Execute(Action action)
         {

@@ -28,8 +28,8 @@ namespace DurableTask.Core
     /// </summary>
     public class ReflectionBasedTaskActivity : TaskActivity
     {
-        private DataConverter dataConverter;
-        private readonly Type[] genericArguments;
+        DataConverter dataConverter;
+        readonly Type[] genericArguments;
 
         /// <summary>
         /// Creates a new ReflectionBasedTaskActivity based on an activity object and method info
@@ -63,15 +63,12 @@ namespace DurableTask.Core
         /// </summary>
         public MethodInfo MethodInfo { get; private set; }
 
+        // will never run
         /// <summary>
         /// Synchronous execute method, blocked for AsyncTaskActivity
         /// </summary>
         /// <returns>string.Empty</returns>
-        public override string Run(TaskContext context, string input)
-        {
-            // will never run
-            return string.Empty;
-        }
+        public override string Run(TaskContext context, string input) => string.Empty;
 
         /// <summary>
         /// Method for executing a task activity asynchronously
@@ -156,12 +153,9 @@ namespace DurableTask.Core
         /// </summary>
         /// <param name="inputParameters"></param>
         /// <returns></returns>
-        public virtual object InvokeActivity(object[] inputParameters)
-        {
-            return MethodInfo.Invoke(ActivityObject, inputParameters);
-        }
+        public virtual object InvokeActivity(object[] inputParameters) => MethodInfo.Invoke(ActivityObject, inputParameters);
 
-        private object InvokeActivity(object[] inputParameters, Type[] genericTypeParameters)
+        object InvokeActivity(object[] inputParameters, Type[] genericTypeParameters)
         {
             if (genericTypeParameters.Any())
             {
@@ -171,12 +165,9 @@ namespace DurableTask.Core
             return MethodInfo.Invoke(ActivityObject, inputParameters);
         }
 
-        string MethodInfoString()
-        {
-            return $"{MethodInfo.ReflectedType?.FullName}.{MethodInfo.Name}";
-        }
+        string MethodInfoString() => $"{MethodInfo.ReflectedType?.FullName}.{MethodInfo.Name}";
 
-        private Type[] GetGenericTypeArguments(JArray jArray)
+        Type[] GetGenericTypeArguments(JArray jArray)
         {
             List<Type> genericParameters = new List<Type>(this.genericArguments.Length);
 
@@ -189,7 +180,7 @@ namespace DurableTask.Core
             return genericParameters.ToArray();
         }
 
-        private object[] GetInputParameters(JArray jArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
+        object[] GetInputParameters(JArray jArray, int parameterCount, ParameterInfo[] methodParameters, Type[] genericArguments)
         {
             var inputParameters = new object[methodParameters.Length];
             for (var i = 0; i < methodParameters.Length; i++)

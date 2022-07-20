@@ -22,7 +22,7 @@ namespace DurableTask.Emulator
     using System.Threading;
     using System.Threading.Tasks;
 
-    internal class PeekLockSessionQueue
+    class PeekLockSessionQueue
     {
         readonly List<TaskSession> sessionQueue;
         readonly List<TaskSession> lockedSessionQueue;

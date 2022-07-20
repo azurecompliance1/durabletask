@@ -72,10 +72,10 @@ namespace DurableTask.AzureServiceFabric.Stores
     /// </summary>
     class SessionProvider : MessageProviderBase<string, PersistentSession>
     {
-        ConcurrentQueue<string> fetchQueue = new ConcurrentQueue<string>();
-        ConcurrentDictionary<string, LockState> lockedSessions = new ConcurrentDictionary<string, LockState>();
+        readonly ConcurrentQueue<string> fetchQueue = new ConcurrentQueue<string>();
+        readonly ConcurrentDictionary<string, LockState> lockedSessions = new ConcurrentDictionary<string, LockState>();
 
-        ConcurrentDictionary<OrchestrationInstance, SessionMessageProvider> sessionMessageProviders
+        readonly ConcurrentDictionary<OrchestrationInstance, SessionMessageProvider> sessionMessageProviders
             = new ConcurrentDictionary<OrchestrationInstance, SessionMessageProvider>(OrchestrationInstanceComparer.Default);
 
         public SessionProvider(IReliableStateManager stateManager, CancellationToken token) : base(stateManager, Constants.OrchestrationDictionaryName, token)

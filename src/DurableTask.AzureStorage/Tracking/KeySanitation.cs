@@ -17,8 +17,8 @@ namespace DurableTask.AzureStorage.Tracking
 
     static class KeySanitation
     {
-        private const char escapeChar = '^';
-        private const char offset = 'À';
+        const char EscapeChar = '^';
+        const char Offset = 'À';
 
         /// <summary>
         /// Escape any characters that can't be used in Azure PartitionKey.
@@ -38,28 +38,28 @@ namespace DurableTask.AzureStorage.Tracking
             {
                 switch (c)
                 {
-                    case escapeChar:
-                        b.Append(escapeChar); 
-                        b.Append(escapeChar);
+                    case EscapeChar:
+                        b.Append(EscapeChar);
+                        b.Append(EscapeChar);
                         break;
 
                     case '/':
-                        b.Append(escapeChar);
+                        b.Append(EscapeChar);
                         b.Append('0');
                         break;
 
                     case '\\': 
-                        b.Append(escapeChar);
+                        b.Append(EscapeChar);
                         b.Append('1'); 
                         break;
 
                     case '#': 
-                        b.Append(escapeChar); 
+                        b.Append(EscapeChar);
                         b.Append('2'); 
                         break;
 
                     case '?': 
-                        b.Append(escapeChar); 
+                        b.Append(EscapeChar);
                         b.Append('3');
                         break;
 
@@ -70,9 +70,9 @@ namespace DurableTask.AzureStorage.Tracking
                             if (val <= 0x1F || (val >= 0x7F && val <= 0x9F))
                             {
                                 // characters in this range cannot be used, so we escape them 
-                                b.Append(escapeChar);
+                                b.Append(EscapeChar);
                                 // and shift them into a valid (unicode) range
-                                b.Append((char) (offset + val));
+                                b.Append((char)(Offset + val));
                             }
                             else
                             {
@@ -102,7 +102,7 @@ namespace DurableTask.AzureStorage.Tracking
             for (int i = 0; i < key.Length; i++)
             {
                 char c = key[i];
-                if (c != escapeChar)
+                if (c != EscapeChar)
                 {
                     b.Append(c);
                 }
@@ -111,7 +111,7 @@ namespace DurableTask.AzureStorage.Tracking
                     c = key[++i];
                     switch (c)
                     {
-                        case escapeChar: b.Append(escapeChar); break;
+                        case EscapeChar: b.Append(EscapeChar); break;
 
                         case '0':
                             b.Append('/');
@@ -131,7 +131,7 @@ namespace DurableTask.AzureStorage.Tracking
 
                         default:
                             {
-                                char shiftedBack = (c < offset) ? c : (char)(c - offset);
+                                char shiftedBack = (c < Offset) ? c : (char)(c - Offset);
                                 b.Append(shiftedBack);
                                 break;
                             }

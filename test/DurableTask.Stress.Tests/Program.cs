@@ -19,18 +19,18 @@ namespace DurableTask.Stress.Tests
     using System;
     using System.Configuration;
     using System.Diagnostics;
+    using CommandLine;
     using DurableTask.Core;
     using DurableTask.Core.Tracing;
-    using DurableTask.ServiceBus.Settings;
     using DurableTask.ServiceBus;
-    using DurableTask.Test.Orchestrations.Stress;
+    using DurableTask.ServiceBus.Settings;
     using DurableTask.ServiceBus.Tracking;
-    using CommandLine;
+    using DurableTask.Test.Orchestrations.Stress;
     using Microsoft.Diagnostics.EventFlow;
 
-    internal class Program
+    class Program
     {
-
+#pragma warning disable CA1506 // Method is coupled with too many different types from too many different namespaces.Rewrite or refactor the code to decrease its class coupling.
         // ReSharper disable once UnusedMember.Local
         static void Main(string[] args)
         {
@@ -130,7 +130,7 @@ namespace DurableTask.Stress.Tests
             var status = OrchestrationStatus.Running;
             if (string.IsNullOrWhiteSpace(instance?.InstanceId))
             {
-                throw new ArgumentException("instance");
+                throw new ArgumentException("instanceId cannot be null or whitespace", nameof(instance));
             }
 
             var sleepForSeconds = 30;
@@ -168,26 +168,26 @@ namespace DurableTask.Stress.Tests
     using System;
     using System.Configuration;
     using System.Diagnostics;
+    using System.Diagnostics.Tracing;
     using DurableTask.Core;
     using DurableTask.Core.Tracing;
-    using DurableTask.ServiceBus.Settings;
     using DurableTask.ServiceBus;
-    using DurableTask.Test.Orchestrations.Stress;
+    using DurableTask.ServiceBus.Settings;
     using DurableTask.ServiceBus.Tracking;
+    using DurableTask.Test.Orchestrations.Stress;
     using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
-    using System.Diagnostics.Tracing;
 
-    internal class Program
+    class Program
     {
         static readonly Options ArgumentOptions = new Options();
-        static ObservableEventListener eventListener;
+        static ObservableEventListener EventListener;
 
         // ReSharper disable once UnusedMember.Local
         static void Main(string[] args)
         {
-            eventListener = new ObservableEventListener();
-            eventListener.LogToFlatFile("Trace.log");
-            eventListener.EnableEvents(DefaultEventSource.Log, EventLevel.Warning);
+            EventListener = new ObservableEventListener();
+            EventListener.LogToFlatFile("Trace.log");
+            EventListener.EnableEvents(DefaultEventSource.Log, EventLevel.Warning);
 
             string tableConnectionString = ConfigurationManager.AppSettings["StorageConnectionString"];
 

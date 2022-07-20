@@ -23,7 +23,7 @@ namespace Correlation.Samples
     //using Microsoft.VisualStudio.TestTools.UnitTesting;
     using Newtonsoft.Json;
 
-    internal class TestOrchestrationClient
+    class TestOrchestrationClient
     {
         readonly TaskHubClient client;
         readonly Type orchestrationType;
@@ -158,7 +158,7 @@ namespace Correlation.Samples
         {
             Trace.TraceInformation($"Getting history for instance with id - {this.instanceId}");
 
-            // GetOrchestrationHistoryAsync is exposed in the TaskHubClinet but requires execution id. 
+            // GetOrchestrationHistoryAsync is exposed in the TaskHubClinet but requires execution id.
             // However, we need to get all the history records for an instance id not for specific execution.
             var service = (AzureStorageOrchestrationService)this.client.ServiceClient;
             string historyString = await service.GetOrchestrationHistoryAsync(instanceId, null);

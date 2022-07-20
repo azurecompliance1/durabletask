@@ -108,7 +108,7 @@ namespace DurableTask.AzureStorage.Storage
             await ExecuteAsync(tableOperation, "InsertOrReplace");
         }
 
-        private async Task ExecuteAsync(TableOperation operation, string operationType)
+        async Task ExecuteAsync(TableOperation operation, string operationType)
         {
             var storageTableResult = await this.azureStorageClient.MakeTableStorageRequest<TableResult>(
                 (context, cancellationToken) => this.cloudTable.ExecuteAsync(operation, null, context, cancellationToken),
@@ -128,7 +128,7 @@ namespace DurableTask.AzureStorage.Storage
             return await this.ExecuteBatchAsync(entityBatch, "InsertOrMerge", (batch, item) => { batch.InsertOrMerge(item); return batch; });
         }
 
-        private async Task<TableResultResponseInfo> ExecuteBatchAsync(
+        async Task<TableResultResponseInfo> ExecuteBatchAsync(
             IList<DynamicTableEntity> entityBatch, 
             string batchType, 
             Func<TableBatchOperation, DynamicTableEntity, TableBatchOperation> batchOperation)

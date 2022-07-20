@@ -11,16 +11,16 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
-using System.Threading.Tasks;
-using StackExchange.Redis;
-
 namespace DurableTask.Redis
 {
-    internal class RedisLogger
+    using System;
+    using System.Threading.Tasks;
+    using StackExchange.Redis;
+
+    class RedisLogger
     {
-        private readonly ConnectionMultiplexer redisConnection;
-        private readonly string logKey;
+        readonly ConnectionMultiplexer redisConnection;
+        readonly string logKey;
 
         public RedisLogger(ConnectionMultiplexer connection, string taskHub)
         {

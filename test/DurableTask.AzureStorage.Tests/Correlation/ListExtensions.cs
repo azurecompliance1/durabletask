@@ -15,6 +15,7 @@ namespace DurableTask.AzureStorage.Tests.Correlation
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.Contracts;
     using System.Linq;
     using Microsoft.ApplicationInsights.Extensibility.Implementation;
 
@@ -22,13 +23,14 @@ namespace DurableTask.AzureStorage.Tests.Correlation
     {
         public static List<OperationTelemetry> CorrelationSort(this List<OperationTelemetry> telemetries)
         {
+            Contract.Assume(telemetries is not null);
             var result = new List<OperationTelemetry>();
             if (telemetries.Count == 0)
             {
                 return result;
             }
 
-        // Sort by the timestamp
+            // Sort by the timestamp
             var sortedTelemetries = telemetries.OrderBy(p => p.Timestamp.Ticks).ToList();
 
             // pick the first one as the parent. remove it from the list.
@@ -43,6 +45,8 @@ namespace DurableTask.AzureStorage.Tests.Correlation
 
         public static bool RemoveOperationTelemetry(this List<OperationTelemetry> telemetries, OperationTelemetry telemetry)
         {
+            Contract.Assume(telemetries is not null);
+            Contract.Assume(telemetry is not null);
             int index = -1;
             for (var i = 0; i < telemetries.Count; i++)
             {

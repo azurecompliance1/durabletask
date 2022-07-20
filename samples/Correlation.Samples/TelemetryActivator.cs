@@ -21,7 +21,7 @@ namespace Correlation.Samples
 
     public class TelemetryActivator
     {
-        private TelemetryClient telemetryClient;
+        TelemetryClient telemetryClient;
 
         public void Initialize()
         {
@@ -54,18 +54,18 @@ namespace Correlation.Samples
 
         void SetUpTelemetryClient()
         {
-            var module = new DependencyTrackingTelemetryModule();
+            using var module = new DependencyTrackingTelemetryModule();
             // Currently it seems have a problem https://github.com/microsoft/ApplicationInsights-dotnet-server/issues/536
             module.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("core.windows.net");
             module.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("127.0.0.1");
 
-            TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
+            using TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
 
 #pragma warning disable CS0618 // Type or member is obsolete
             var telemetryInitializer = new DurableTaskCorrelationTelemetryInitializer();
 #pragma warning restore CS0618 // Type or member is obsolete
-                              // TODO It should be suppressed by DependencyTrackingTelemetryModule, however, it doesn't work currently.
-                              // Once the bug is fixed, remove this settings. 
+            // TODO It should be suppressed by DependencyTrackingTelemetryModule, however, it doesn't work currently.
+            // Once the bug is fixed, remove this settings.
             telemetryInitializer.ExcludeComponentCorrelationHttpHeadersOnDomains.Add("127.0.0.1");
             config.TelemetryInitializers.Add(telemetryInitializer);
 

@@ -11,16 +11,12 @@
 //  limitations under the License.
 //  ----------------------------------------------------------------------------------
 
-using System;
-using System.Collections.Concurrent;
-using System.Threading;
-using System.Threading.Tasks;
-using DurableTask.Core;
-using StackExchange.Redis;
-using static StackExchange.Redis.RedisChannel;
-
 namespace DurableTask.Redis
 {
+    using System.Threading.Tasks;
+    using DurableTask.Core;
+    using StackExchange.Redis;
+
     /// <summary>
     /// Responsible for cleaning up the processing queues and other Redis data of dead workers. Right now,
     /// since only one worker can be alive at a time, as long as this finishes cleaning up before 
@@ -28,15 +24,15 @@ namespace DurableTask.Redis
     /// workers will have to constantly compete to be the "cleaner", and this class will be performing
     /// several background cleanup jobs to see if any workers have died recently and cleaning them up if necessary.
     /// </summary>
-    internal class WorkerRecycler
+    class WorkerRecycler
     {
-        private readonly string taskHub;
-        private readonly ConnectionMultiplexer redisConnection;
-        private readonly string workerSetKey;
-        private readonly string incomingActivityQueueKey;
-        private readonly RedisLogger logger;
+        readonly string taskHub;
+        readonly ConnectionMultiplexer redisConnection;
+        readonly string workerSetKey;
+        readonly string incomingActivityQueueKey;
+        readonly RedisLogger logger;
 
-        public WorkerRecycler(string taskHub,  ConnectionMultiplexer connection)
+        public WorkerRecycler(string taskHub, ConnectionMultiplexer connection)
         {
             this.taskHub = taskHub;
             this.redisConnection = connection;
@@ -55,7 +51,7 @@ namespace DurableTask.Redis
         {
             IDatabase redisDatabase = this.redisConnection.GetDatabase();
             RedisValue[] deadWorkerIds = await redisDatabase.SetMembersAsync(this.workerSetKey);
-            
+
             foreach (string deadWorkerId in deadWorkerIds)
             {
                 string processingQueueKey = RedisKeyNameResolver.GetTaskActivityProcessingQueueKey(this.taskHub, deadWorkerId);

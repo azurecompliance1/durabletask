@@ -31,8 +31,7 @@ namespace DurableTask.Core.History
         /// </summary>
         /// <param name="eventId">The integer event id</param>
         /// <param name="data">The data for the event</param>
-        public GenericEvent(int eventId, string data)
-            : base(eventId)
+        public GenericEvent(int eventId, string data) : base(eventId)
         {
             this.Data = data;
         }

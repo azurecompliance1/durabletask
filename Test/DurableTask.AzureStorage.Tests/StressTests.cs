@@ -66,7 +66,7 @@ namespace DurableTask.AzureStorage.Tests
             const int MaxConcurrency = 40;
 
             TaskActivity activity = TestOrchestrationHost.MakeActivity(
-                delegate(TaskContext ctx, string input)
+                delegate (TaskContext ctx, string input)
                 {
                     string result = $"Hello, {input}!";
                     results.Add(result);

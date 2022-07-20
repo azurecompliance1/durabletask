@@ -16,7 +16,7 @@ namespace DurableTask.AzureServiceFabric
     using System.Collections.Generic;
     using DurableTask.Core;
 
-    internal class OrchestrationInstanceComparer : IEqualityComparer<OrchestrationInstance>
+    class OrchestrationInstanceComparer : IEqualityComparer<OrchestrationInstance>
     {
         public static readonly OrchestrationInstanceComparer Default = new OrchestrationInstanceComparer();
 
@@ -35,9 +35,6 @@ namespace DurableTask.AzureServiceFabric
             return false;
         }
 
-        public int GetHashCode(OrchestrationInstance instance)
-        {
-            return instance.GetHashCode();
-        }
+        public int GetHashCode(OrchestrationInstance instance) => instance.GetHashCode();
     }
 }

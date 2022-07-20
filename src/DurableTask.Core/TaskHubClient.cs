@@ -42,9 +42,7 @@ namespace DurableTask.Core
         /// </summary>
         /// <param name="serviceClient">Object implementing the <see cref="IOrchestrationServiceClient"/> interface </param>
         public TaskHubClient(IOrchestrationServiceClient serviceClient)
-            : this(serviceClient, JsonDataConverter.Default)
-        {
-        }
+            : this(serviceClient, JsonDataConverter.Default) { }
 
         /// <summary>
         ///     Create a new TaskHubClient with the given OrchestrationServiceClient and JsonDataConverter.
@@ -52,9 +50,7 @@ namespace DurableTask.Core
         /// <param name="serviceClient">Object implementing the <see cref="IOrchestrationServiceClient"/> interface </param>
         /// <param name="dataConverter">The <see cref="JsonDataConverter"/> to use for message serialization.</param>
         public TaskHubClient(IOrchestrationServiceClient serviceClient, JsonDataConverter dataConverter)
-            : this(serviceClient, dataConverter, null)
-        {
-        }
+            : this(serviceClient, dataConverter, null) { }
 
         /// <summary>
         ///     Create a new TaskHubClient with the given OrchestrationServiceClient, JsonDataConverter, and ILoggerFactory.
@@ -576,8 +572,8 @@ namespace DurableTask.Core
         {
             TraceContextBase requestTraceContext = null;
 
-            // correlation 
-            CorrelationTraceClient.Propagate(()=> { requestTraceContext = CreateOrExtractRequestTraceContext(eventName); });
+            // correlation
+            CorrelationTraceClient.Propagate(() => { requestTraceContext = CreateOrExtractRequestTraceContext(eventName); });
 
             if (string.IsNullOrWhiteSpace(orchestrationInstanceId))
             {
@@ -607,7 +603,7 @@ namespace DurableTask.Core
             };
 
             this.logHelper.SchedulingOrchestration(startedEvent);
-            
+
             CorrelationTraceClient.Propagate(() => CreateAndTrackDependencyTelemetry(requestTraceContext));
 
             // Raised events and create orchestration calls use different methods so get handled separately
@@ -618,7 +614,7 @@ namespace DurableTask.Core
                 string serializedEventData = this.defaultConverter.Serialize(eventData);
                 var eventRaisedEvent = new EventRaisedEvent(-1, serializedEventData) { Name = eventName };
                 this.logHelper.RaisingEvent(orchestrationInstance, eventRaisedEvent);
-                
+
                 var eventMessage = new TaskMessage
                 {
                     OrchestrationInstance = new OrchestrationInstance
@@ -841,7 +837,7 @@ namespace DurableTask.Core
             if (string.IsNullOrWhiteSpace(instance?.InstanceId) ||
                 string.IsNullOrWhiteSpace(instance.ExecutionId))
             {
-                throw new ArgumentException("instance, instanceId and/or ExecutionId cannot be null or empty", nameof(instance));
+                throw new ArgumentException("instance, instanceId and/or ExecutionId cannot be null or whitespace", nameof(instance));
             }
 
             this.logHelper.FetchingInstanceHistory(instance);

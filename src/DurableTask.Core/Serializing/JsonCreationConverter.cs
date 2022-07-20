@@ -20,14 +20,11 @@ namespace DurableTask.Core.Serializing
     /// <summary>
     ///     Helper class for supporting deserialization from JSON into a custom class hierarchy
     /// </summary>
-    internal abstract class JsonCreationConverter<T> : JsonConverter where T : class
+    abstract class JsonCreationConverter<T> : JsonConverter where T : class
     {
         public override bool CanWrite => false;
 
-        public override bool CanConvert(Type objectType)
-        {
-            return typeof(T).IsAssignableFrom(objectType);
-        }
+        public override bool CanConvert(Type objectType) => typeof(T).IsAssignableFrom(objectType);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue,
             JsonSerializer serializer)
@@ -39,7 +36,7 @@ namespace DurableTask.Core.Serializing
 
             JObject value = JObject.Load(reader);
 
-            // Create target object based on JObject 
+            // Create target object based on JObject
             T target = CreateObject(objectType, value);
 
             serializer.Populate(value.CreateReader(), target);
@@ -53,7 +50,7 @@ namespace DurableTask.Core.Serializing
         }
 
         /// <summary>
-        ///     Create an instance of objectType, based properties in the JSON object
+        /// Creates an instance of objectType, based properties in the JSON object
         /// </summary>
         protected abstract T CreateObject(Type objectType, JObject jObject);
     }

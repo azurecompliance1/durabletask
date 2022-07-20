@@ -313,11 +313,12 @@ namespace DurableTask.AzureStorage
 
             await this.partitionManager.CreateLeaseStore();
 
-            var tasks = new List<Task>();
+            var tasks = new List<Task>
+            {
+                this.trackingStore.CreateAsync(),
 
-            tasks.Add(this.trackingStore.CreateAsync());
-
-            tasks.Add(this.workItemQueue.CreateIfNotExistsAsync());
+                this.workItemQueue.CreateIfNotExistsAsync()
+            };
 
             foreach (ControlQueue controlQueue in this.allControlQueues.Values)
             {
@@ -379,7 +380,7 @@ namespace DurableTask.AzureStorage
             this.taskHubCreator.Reset();
         }
 
-        private Task DeleteTrackingStore()
+        Task DeleteTrackingStore()
         {
             return this.trackingStore.DeleteAsync();
         }
@@ -1937,7 +1938,7 @@ namespace DurableTask.AzureStorage
             return ConvertFrom(statusContext);
         }
 
-        private static OrchestrationInstanceStatusQueryCondition ToAzureStorageCondition(OrchestrationQuery condition)
+        static OrchestrationInstanceStatusQueryCondition ToAzureStorageCondition(OrchestrationQuery condition)
         {
             return new OrchestrationInstanceStatusQueryCondition
             {
@@ -1950,7 +1951,7 @@ namespace DurableTask.AzureStorage
             };
         }
 
-        private static OrchestrationQueryResult ConvertFrom(DurableStatusQueryResult statusContext)
+        static OrchestrationQueryResult ConvertFrom(DurableStatusQueryResult statusContext)
         {
             var results = new List<OrchestrationState>();
             foreach (var state in statusContext.OrchestrationState)

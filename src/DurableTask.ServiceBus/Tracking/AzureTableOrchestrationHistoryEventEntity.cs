@@ -26,13 +26,13 @@ namespace DurableTask.ServiceBus.Tracking
     /// </summary>
     public class AzureTableOrchestrationHistoryEventEntity : AzureTableCompositeTableEntity
     {
-        private static readonly JsonSerializerSettings WriteJsonSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings WriteJsonSettings = new JsonSerializerSettings
         {
             Formatting = Formatting.Indented,
             TypeNameHandling = TypeNameHandling.Objects
         };
 
-        private static readonly JsonSerializerSettings ReadJsonSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings ReadJsonSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.Objects,
 #if NETSTANDARD2_0
@@ -43,7 +43,7 @@ namespace DurableTask.ServiceBus.Tracking
         };
 
         /// <summary>
-        /// Creates a new AzureTableOrchestrationHistoryEventEntity 
+        /// Creates a new AzureTableOrchestrationHistoryEventEntity
         /// </summary>
         public AzureTableOrchestrationHistoryEventEntity()
         {
@@ -100,12 +100,14 @@ namespace DurableTask.ServiceBus.Tracking
             var entity = new AzureTableOrchestrationHistoryEventEntity(InstanceId,
                 ExecutionId,
                 SequenceNumber,
-                TaskTimeStamp, HistoryEvent);
-            entity.PartitionKey = AzureTableConstants.InstanceHistoryEventPrefix +
-                                  AzureTableConstants.JoinDelimiter + InstanceId;
-            entity.RowKey = AzureTableConstants.InstanceHistoryEventRowPrefix +
+                TaskTimeStamp, HistoryEvent)
+            {
+                PartitionKey = AzureTableConstants.InstanceHistoryEventPrefix +
+                                  AzureTableConstants.JoinDelimiter + InstanceId,
+                RowKey = AzureTableConstants.InstanceHistoryEventRowPrefix +
                             AzureTableConstants.JoinDelimiter +
-                            ExecutionId + AzureTableConstants.JoinDelimiter + SequenceNumber;
+                            ExecutionId + AzureTableConstants.JoinDelimiter + SequenceNumber
+            };
 
             return new[] { entity };
         }
@@ -129,12 +131,14 @@ namespace DurableTask.ServiceBus.Tracking
                     WriteJsonSettings);
             }
 
-            var returnValues = new Dictionary<string, EntityProperty>();
-            returnValues.Add("InstanceId", new EntityProperty(InstanceId));
-            returnValues.Add("ExecutionId", new EntityProperty(ExecutionId));
-            returnValues.Add("TaskTimeStamp", new EntityProperty(TaskTimeStamp));
-            returnValues.Add("SequenceNumber", new EntityProperty(SequenceNumber));
-            returnValues.Add("HistoryEvent", new EntityProperty(serializedHistoryEvent));
+            var returnValues = new Dictionary<string, EntityProperty>
+            {
+                { "InstanceId", new EntityProperty(InstanceId) },
+                { "ExecutionId", new EntityProperty(ExecutionId) },
+                { "TaskTimeStamp", new EntityProperty(TaskTimeStamp) },
+                { "SequenceNumber", new EntityProperty(SequenceNumber) },
+                { "HistoryEvent", new EntityProperty(serializedHistoryEvent) }
+            };
 
             return returnValues;
         }
@@ -167,7 +171,7 @@ namespace DurableTask.ServiceBus.Tracking
         /// </returns>
         public override string ToString()
         {
-            return $"Instance Id: {InstanceId} Execution Id: {ExecutionId} Seq: {SequenceNumber.ToString()} Time: {TaskTimeStamp} HistoryEvent: {HistoryEvent.EventType.ToString()}";
+            return $"Instance Id: {InstanceId} Execution Id: {ExecutionId} Seq: {SequenceNumber} Time: {TaskTimeStamp} HistoryEvent: {HistoryEvent.EventType}";
         }
     }
 }

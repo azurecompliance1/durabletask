@@ -71,14 +71,14 @@ namespace DurableTask.ServiceBus.Stats
         public override string ToString()
         {
             return $"MessagesSent: {MessagesSent}"
-                   + $", MessagesReceived: {MessagesReceived}"
-                   + $", MessageBatchesSent: {MessageBatchesSent}"
-                   + $", MessageBatchesReceived: {MessageBatchesReceived}"
-                   + $", SessionsRenewed: {SessionsRenewed}"
-                   + $", SessionsReceived: {SessionsReceived}"
-                   + $", SessionBatchesCompleted: {SessionBatchesCompleted}"
-                   + $", SessionSets: {SessionSets}"
-                   + $", SessionGets: {SessionGets}";
+                 + $", MessagesReceived: {MessagesReceived}"
+                 + $", MessageBatchesSent: {MessageBatchesSent}"
+                 + $", MessageBatchesReceived: {MessageBatchesReceived}"
+                 + $", SessionsRenewed: {SessionsRenewed}"
+                 + $", SessionsReceived: {SessionsReceived}"
+                 + $", SessionBatchesCompleted: {SessionBatchesCompleted}"
+                 + $", SessionSets: {SessionSets}"
+                 + $", SessionGets: {SessionGets}";
         }
     }
 }

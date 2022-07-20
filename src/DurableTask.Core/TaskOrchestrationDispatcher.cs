@@ -15,7 +15,6 @@ namespace DurableTask.Core
 {
     using System;
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
@@ -41,7 +40,7 @@ namespace DurableTask.Core
         readonly WorkItemDispatcher<TaskOrchestrationWorkItem> dispatcher;
         readonly DispatchMiddlewarePipeline dispatchPipeline;
         readonly LogHelper logHelper;
-        ErrorPropagationMode errorPropagationMode;
+        readonly ErrorPropagationMode errorPropagationMode;
         readonly NonBlockingCountdownLock concurrentSessionLock;
 
         internal TaskOrchestrationDispatcher(
@@ -81,19 +80,13 @@ namespace DurableTask.Core
         /// <summary>
         /// Starts the dispatcher to start getting and processing orchestration events
         /// </summary>
-        public async Task StartAsync()
-        {
-            await this.dispatcher.StartAsync();
-        }
+        public async Task StartAsync() => await this.dispatcher.StartAsync();
 
         /// <summary>
         /// Stops the dispatcher to stop getting and processing orchestration events
         /// </summary>
         /// <param name="forced">Flag indicating whether to stop gracefully or immediately</param>
-        public async Task StopAsync(bool forced)
-        {
-            await this.dispatcher.StopAsync(forced);
-        }
+        public async Task StopAsync(bool forced) => await this.dispatcher.StopAsync(forced);
 
         /// <summary>
         /// Gets or sets flag whether to include additional details in error messages
@@ -137,7 +130,7 @@ namespace DurableTask.Core
             {
                 // Keep track of orchestrator generation changes, maybe update target position
                 string executionId = message.OrchestrationInstance.ExecutionId;
-                if(previousExecutionId != executionId)
+                if (previousExecutionId != executionId)
                 {
                     // We want to re-position the ExecutionStarted event after the "right-most"
                     // event with a non-null executionID that came before it.
@@ -199,7 +192,7 @@ namespace DurableTask.Core
 
                 CorrelationTraceClient.Propagate(
                     () =>
-                    {                
+                    {
                         // Check if it is extended session.
                         isExtendedSession = this.concurrentSessionLock.Acquire();
                         this.concurrentSessionLock.Release();
@@ -286,7 +279,7 @@ namespace DurableTask.Core
             var isCompleted = false;
             var continuedAsNew = false;
             var isInterrupted = false;
-            
+
             // correlation
             CorrelationTraceClient.Propagate(() => CorrelationTraceContext.Current = workItem.TraceContext);
 
@@ -468,10 +461,11 @@ namespace DurableTask.Core
                     }
 
                     // correlation
-                    CorrelationTraceClient.Propagate(() => {
-                        if (runtimeState.ExecutionStartedEvent != null)
+                    CorrelationTraceClient.Propagate(() =>
+                    {
+                        if (runtimeState.ExecutionStartedEvent is not null)
                             runtimeState.ExecutionStartedEvent.Correlation = CorrelationTraceContext.Current.SerializableTraceContext;
-                     });
+                    });
 
 
                     // finish up processing of the work item
@@ -499,7 +493,7 @@ namespace DurableTask.Core
                                 "Updating state for continuation");
 
                             // correlation
-                            CorrelationTraceClient.Propagate(() => 
+                            CorrelationTraceClient.Propagate(() =>
                             {
                                 continueAsNewExecutionStarted!.Correlation = CorrelationTraceContext.Current.SerializableTraceContext;
                             });
@@ -556,7 +550,7 @@ namespace DurableTask.Core
                 continuedAsNew ? null : timerMessages,
                 continuedAsNewMessage,
                 instanceState);
-            
+
             if (workItem.RestoreOriginalRuntimeStateDuringCompletion)
             {
                 workItem.OrchestrationRuntimeState = runtimeState;
@@ -780,7 +774,7 @@ namespace DurableTask.Core
                 return taskMessage;
             }
 
-            // If this is a Sub Orchestration, and not tagged as fire-and-forget, 
+            // If this is a Sub Orchestration, and not tagged as fire-and-forget,
             // then notify the parent by sending a complete message
             if (runtimeState.ParentInstance != null
                 && !OrchestrationTags.IsTaggedAsFireAndForget(runtimeState.Tags))
@@ -800,8 +794,10 @@ namespace DurableTask.Core
                     var subOrchestrationFailedEvent =
                         new SubOrchestrationInstanceFailedEvent(-1, runtimeState.ParentInstance.TaskScheduleId,
                             completeOrchestratorAction.Result,
-                            includeDetails ? completeOrchestratorAction.Details : null);
-                    subOrchestrationFailedEvent.FailureDetails = completeOrchestratorAction.FailureDetails;
+                            includeDetails ? completeOrchestratorAction.Details : null)
+                        {
+                            FailureDetails = completeOrchestratorAction.FailureDetails
+                        };
 
                     taskMessage.Event = subOrchestrationFailedEvent;
                 }
@@ -936,11 +932,11 @@ namespace DurableTask.Core
         {
             var historyEvent = new EventSentEvent(sendEventAction.Id)
             {
-                 InstanceId = sendEventAction.Instance?.InstanceId,
-                 Name = sendEventAction.EventName,
-                 Input = sendEventAction.EventData
+                InstanceId = sendEventAction.Instance?.InstanceId,
+                Name = sendEventAction.EventName,
+                Input = sendEventAction.EventData
             };
-            
+
             runtimeState.AddEvent(historyEvent);
 
             this.logHelper.RaisingEvent(runtimeState.OrchestrationInstance, historyEvent);
@@ -954,10 +950,10 @@ namespace DurableTask.Core
                 }
             };
         }
- 
+
         class NonBlockingCountdownLock
         {
-            int available;
+            volatile int available;
 
             public NonBlockingCountdownLock(int available)
             {
@@ -989,10 +985,7 @@ namespace DurableTask.Core
                 return false;
             }
 
-            public void Release()
-            {
-                Interlocked.Increment(ref this.available);
-            }
+            public void Release() => Interlocked.Increment(ref this.available);
         }
     }
 }

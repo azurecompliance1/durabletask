@@ -16,7 +16,6 @@ namespace DurableTask.Core.Common
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Dynamic;
     using System.IO;
     using System.IO.Compression;
     using System.Linq;
@@ -52,7 +51,7 @@ namespace DurableTask.Core.Common
         /// </summary>
         internal static readonly string PackageVersion = FileVersionInfo.GetVersionInfo(typeof(TaskOrchestration).Assembly.Location).FileVersion;
 
-        private static readonly JsonSerializerSettings ObjectJsonSettings = new JsonSerializerSettings
+        static readonly JsonSerializerSettings ObjectJsonSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.All,
 
@@ -70,7 +69,7 @@ namespace DurableTask.Core.Common
         /// The default value comes from the WEBSITE_SITE_NAME environment variable, which is defined
         /// in Azure App Service. Other environments can use DTFX_APP_NAME to set this value.
         /// </remarks>
-        public static string AppName { get; set; } = 
+        public static string AppName { get; set; } =
             Environment.GetEnvironmentVariable("WEBSITE_SITE_NAME") ??
             Environment.GetEnvironmentVariable("DTFX_APP_NAME") ??
             string.Empty;
@@ -79,9 +78,7 @@ namespace DurableTask.Core.Common
         /// NoOp utility method
         /// </summary>
         /// <param name="parameter">The parameter.</param>
-        public static void UnusedParameter(object parameter)
-        {
-        }
+        public static void UnusedParameter(object parameter) { }
 
         /// <summary>
         /// Extension method to truncate a string to the supplied length
@@ -179,9 +176,7 @@ namespace DurableTask.Core.Common
         /// </summary>
         public static T ReadObjectFromByteArray<T>(byte[] serializedBytes)
         {
-            return JsonConvert.DeserializeObject<T>(
-                                Encoding.UTF8.GetString(serializedBytes),
-                                ObjectJsonSettings);
+            return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(serializedBytes), ObjectJsonSettings);
         }
 
         /// <summary>
@@ -232,7 +227,7 @@ namespace DurableTask.Core.Common
         }
 
         /// <summary>
-        ///     Caller disposes the returned stream
+        /// Caller disposes the returned stream
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
@@ -433,28 +428,25 @@ namespace DurableTask.Core.Common
         /// <summary>
         /// Builds a new OrchestrationState from the supplied OrchestrationRuntimeState
         /// </summary>
-        public static OrchestrationState BuildOrchestrationState(OrchestrationRuntimeState runtimeState)
+        public static OrchestrationState BuildOrchestrationState(OrchestrationRuntimeState runtimeState) => new OrchestrationState
         {
-            return new OrchestrationState
-            {
-                OrchestrationInstance = runtimeState.OrchestrationInstance,
-                ParentInstance = runtimeState.ParentInstance,
-                Name = runtimeState.Name,
-                Version = runtimeState.Version,
-                Status = runtimeState.Status,
-                Tags = runtimeState.Tags,
-                OrchestrationStatus = runtimeState.OrchestrationStatus,
-                CreatedTime = runtimeState.CreatedTime,
-                CompletedTime = runtimeState.CompletedTime,
-                LastUpdatedTime = DateTime.UtcNow,
-                Size = runtimeState.Size,
-                CompressedSize = runtimeState.CompressedSize,
-                Input = runtimeState.Input,
-                Output = runtimeState.Output,
-                ScheduledStartTime = runtimeState.ExecutionStartedEvent?.ScheduledStartTime,
-                FailureDetails = runtimeState.FailureDetails,
-            };
-        }
+            OrchestrationInstance = runtimeState.OrchestrationInstance,
+            ParentInstance = runtimeState.ParentInstance,
+            Name = runtimeState.Name,
+            Version = runtimeState.Version,
+            Status = runtimeState.Status,
+            Tags = runtimeState.Tags,
+            OrchestrationStatus = runtimeState.OrchestrationStatus,
+            CreatedTime = runtimeState.CreatedTime,
+            CompletedTime = runtimeState.CompletedTime,
+            LastUpdatedTime = DateTime.UtcNow,
+            Size = runtimeState.Size,
+            CompressedSize = runtimeState.CompressedSize,
+            Input = runtimeState.Input,
+            Output = runtimeState.Output,
+            ScheduledStartTime = runtimeState.ExecutionStartedEvent?.ScheduledStartTime,
+            FailureDetails = runtimeState.FailureDetails,
+        };
 
         /// <summary>
         /// Delay for a specified period of time with support for cancellation.

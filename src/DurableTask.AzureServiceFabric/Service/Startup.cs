@@ -18,15 +18,15 @@ namespace DurableTask.AzureServiceFabric.Service
     using System.Web.Http;
     using System.Web.Http.ExceptionHandling;
 
-    using DurableTask.Core;
     using DurableTask.AzureServiceFabric;
+    using DurableTask.Core;
     using Microsoft.Extensions.DependencyInjection;
     using Owin;
 
     class Startup : IOwinAppBuilder
     {
-        FabricOrchestrationProvider fabricOrchestrationProvider;
-        string listeningAddress;
+        readonly FabricOrchestrationProvider fabricOrchestrationProvider;
+        readonly string listeningAddress;
 
         public Startup(string listeningAddress, FabricOrchestrationProvider fabricOrchestrationProvider)
         {
@@ -34,12 +34,9 @@ namespace DurableTask.AzureServiceFabric.Service
             this.fabricOrchestrationProvider = fabricOrchestrationProvider ?? throw new ArgumentNullException(nameof(fabricOrchestrationProvider));
         }
 
-        public string GetListeningAddress()
-        {
-            return this.listeningAddress;
-        }
+        public string GetListeningAddress() => this.listeningAddress;
 
-        private ServiceProvider GenerateServiceProvider()
+        ServiceProvider GenerateServiceProvider()
         {
             var services = new ServiceCollection();
             services.AddSingleton<IOrchestrationServiceClient>(this.fabricOrchestrationProvider.OrchestrationServiceClient);

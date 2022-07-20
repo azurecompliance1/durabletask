@@ -41,11 +41,13 @@ namespace DurableTask.Core
         readonly SemaphoreSlim slimLock = new SemaphoreSlim(1, 1);
         readonly LogHelper logHelper;
 
+#pragma warning disable IDE1006 // Naming Styles: avoid breaking change
         /// <summary>
         /// Reference to the orchestration service used by the task hub worker
         /// </summary>
         // ReSharper disable once InconsistentNaming (avoid breaking change)
         public IOrchestrationService orchestrationService { get; }
+#pragma warning restore IDE1006 // Naming Styles: avoid breaking change
 
         volatile bool isStarted;
 
@@ -61,8 +63,7 @@ namespace DurableTask.Core
                   orchestrationService,
                   new NameVersionObjectManager<TaskOrchestration>(),
                   new NameVersionObjectManager<TaskActivity>())
-        {
-        }
+        { }
 
 
         /// <summary>
@@ -76,8 +77,7 @@ namespace DurableTask.Core
                   new NameVersionObjectManager<TaskOrchestration>(),
                   new NameVersionObjectManager<TaskActivity>(),
                   loggerFactory)
-        {
-        }
+        { }
 
         /// <summary>
         ///     Create a new TaskHubWorker with given OrchestrationService and name version managers
@@ -94,8 +94,7 @@ namespace DurableTask.Core
                 orchestrationObjectManager,
                 activityObjectManager,
                 loggerFactory: null)
-        {
-        }
+        { }
 
 
         /// <summary>
@@ -136,7 +135,7 @@ namespace DurableTask.Core
         /// could fail unexpectedly if there is any logic that depends on a particular behavior of exception propagation.
         /// For example, setting <see cref="ErrorPropagationMode.UseFailureDetails"/> causes
         /// <see cref="OrchestrationException.FailureDetails"/> to be populated in <see cref="TaskFailedException"/> and
-        /// <see cref="SubOrchestrationFailedException"/> but also causes the <see cref="Exception.InnerException"/> 
+        /// <see cref="SubOrchestrationFailedException"/> but also causes the <see cref="Exception.InnerException"/>
         /// property to be <c>null</c> for these exception types.
         /// </para><para>
         /// This property must be set before the worker is started. Otherwise it will have no effect.
@@ -210,10 +209,7 @@ namespace DurableTask.Core
         /// <summary>
         ///     Gracefully stops the TaskHubWorker
         /// </summary>
-        public async Task StopAsync()
-        {
-            await this.StopAsync(false);
-        }
+        public async Task StopAsync() => await this.StopAsync(false);
 
         /// <summary>
         ///     Stops the TaskHubWorker
@@ -414,7 +410,8 @@ namespace DurableTask.Core
         ///  <see cref="System.Runtime.CompilerServices.InternalsVisibleToAttribute"/> must be set on the assembly containing
         ///  the <typeparamref name="T"/> for 'DynamicProxyGenAssembly2' assembly.
         /// </remarks>
-        public TaskHubWorker AddTaskActivitiesFromInterfaceOrClass<T>(object activities, bool useFullyQualifiedMethodNames = false, bool includeInternalMethods = false)
+        public TaskHubWorker AddTaskActivitiesFromInterfaceOrClass<T>(
+            object activities, bool useFullyQualifiedMethodNames = false, bool includeInternalMethods = false)
         {
             return this.AddTaskActivitiesFromInterfaceOrClass(typeof(T), activities, useFullyQualifiedMethodNames, includeInternalMethods);
         }
@@ -437,7 +434,8 @@ namespace DurableTask.Core
         ///  <see cref="System.Runtime.CompilerServices.InternalsVisibleToAttribute"/> must be set on the assembly containing
         ///  the <paramref name="interfaceOrClass"/> for 'DynamicProxyGenAssembly2' assembly.
         /// </remarks>
-        public TaskHubWorker AddTaskActivitiesFromInterfaceOrClass(Type interfaceOrClass, object activities, bool useFullyQualifiedMethodNames = false, bool includeInternalMethods = false)
+        public TaskHubWorker AddTaskActivitiesFromInterfaceOrClass(
+            Type interfaceOrClass, object activities, bool useFullyQualifiedMethodNames = false, bool includeInternalMethods = false)
         {
             if (interfaceOrClass.IsClass && interfaceOrClass.IsSealed)
             {
@@ -482,9 +480,6 @@ namespace DurableTask.Core
         }
 
         /// <inheritdoc />
-        public void Dispose()
-        {
-            ((IDisposable)this.slimLock).Dispose();
-        }
+        public void Dispose() => ((IDisposable)this.slimLock).Dispose();
     }
 }

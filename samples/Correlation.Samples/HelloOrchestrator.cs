@@ -19,17 +19,17 @@ namespace Correlation.Samples
     using DurableTask.Core;
 
     [KnownType(typeof(Hello))]
-    internal class HelloOrchestrator : TaskOrchestration<string, string>
+    class HelloOrchestrator : TaskOrchestration<string, string>
     {
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
-          //  await contextBase.ScheduleTask<string>(typeof(Hello), "world");
-          //   if you pass an empty string it throws an error
+            //  await contextBase.ScheduleTask<string>(typeof(Hello), "world");
+            //   if you pass an empty string it throws an error
             return await context.ScheduleTask<string>(typeof(Hello), "world");
         }
     }
 
-    internal class Hello : TaskActivity<string, string>
+    class Hello : TaskActivity<string, string>
     {
         protected override string Execute(TaskContext context, string input)
         {

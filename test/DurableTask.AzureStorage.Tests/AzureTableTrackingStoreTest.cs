@@ -38,10 +38,12 @@ namespace DurableTask.AzureStorage.Tests
             var fixture = new QueryFixture();
             fixture.SetUpQueryStateWithPagerWithoutInputToken();
 
-            var inputState = new List<OrchestrationStatus>();
-            inputState.Add(OrchestrationStatus.Running);
-            inputState.Add(OrchestrationStatus.Completed);
-            inputState.Add(OrchestrationStatus.Failed);
+            var inputState = new List<OrchestrationStatus>
+            {
+                OrchestrationStatus.Running,
+                OrchestrationStatus.Completed,
+                OrchestrationStatus.Failed
+            };
 
             var result = await fixture.TrackingStore.GetStateAsync(fixture.ExpectedCreatedDateFrom, fixture.ExpectedCreatedDateTo, inputState, 3, fixture.InputToken);
 
@@ -68,10 +70,12 @@ namespace DurableTask.AzureStorage.Tests
 
             fixture.SetupQueryStateWithPagerWithInputToken(inputTokenString);
 
-            var inputState = new List<OrchestrationStatus>();
-            inputState.Add(OrchestrationStatus.Running);
-            inputState.Add(OrchestrationStatus.Completed);
-            inputState.Add(OrchestrationStatus.Failed);
+            var inputState = new List<OrchestrationStatus>
+            {
+                OrchestrationStatus.Running,
+                OrchestrationStatus.Completed,
+                OrchestrationStatus.Failed
+            };
 
             var result = await fixture.TrackingStore.GetStateAsync(fixture.ExpectedCreatedDateFrom, fixture.ExpectedCreatedDateTo, inputState, 3, fixture.InputToken);
 
@@ -83,9 +87,9 @@ namespace DurableTask.AzureStorage.Tests
             fixture.VerifyQueryStateWithPager();
         }
 
-        private class QueryFixture
+        class QueryFixture
         {
-            private readonly Mock<Table> tableMock;
+            readonly Mock<Table> tableMock;
 
             public AzureTableTrackingStore TrackingStore { get; set; }
 
@@ -122,7 +126,7 @@ namespace DurableTask.AzureStorage.Tests
                 this.tableMock = new Mock<Table>(azureStorageClient, cloudTableClient, "MockTable");
             }
 
-            private void SetUpQueryStateWithPager(string inputToken)
+            void SetUpQueryStateWithPager(string inputToken)
             {
                 this.ExpectedCreatedDateFrom = DateTime.UtcNow;
                 this.ExpectedCreatedDateTo = DateTime.UtcNow;
@@ -154,7 +158,7 @@ namespace DurableTask.AzureStorage.Tests
                         It.IsAny<string>()));
             }
 
-            private void SetupExecuteQuerySegmentMock()
+            void SetupExecuteQuerySegmentMock()
             {
                 var segment = (TableEntitiesResponseInfo<OrchestrationInstanceStatus>)System.Runtime.Serialization.FormatterServices.GetSafeUninitializedObject(typeof(TableEntitiesResponseInfo<OrchestrationInstanceStatus>));
                 segment.GetType().GetProperty("ReturnedEntities").SetValue(segment, this.InputStatus);
@@ -173,7 +177,7 @@ namespace DurableTask.AzureStorage.Tests
                         });
             }
 
-            private void SetupQueryStateWithPagerInputStatus()
+            void SetupQueryStateWithPagerInputStatus()
             {
                 this.InputStatus = new List<OrchestrationInstanceStatus>()
                 {
@@ -195,7 +199,7 @@ namespace DurableTask.AzureStorage.Tests
                 };
             }
 
-            private void SetUpQueryStateWithPagerResult()
+            void SetUpQueryStateWithPagerResult()
             {
                 this.ExpectedResult = new DurableStatusQueryResult();
 
@@ -228,7 +232,7 @@ namespace DurableTask.AzureStorage.Tests
                 };
             }
 
-            private void SetupTrackingStore()
+            void SetupTrackingStore()
             {
                 var stats = new AzureStorageOrchestrationServiceStats();
                 this.TrackingStore = new AzureTableTrackingStore(stats, this.TableMock);

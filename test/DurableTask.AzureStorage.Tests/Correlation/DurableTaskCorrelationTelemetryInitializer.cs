@@ -43,8 +43,8 @@ namespace DurableTask.AzureStorage.Tests.Correlation
 #endif
         class DurableTaskCorrelationTelemetryInitializer : ITelemetryInitializer
     {
-        private const string RddDiagnosticSourcePrefix = "rdddsc";
-        private const string SqlRemoteDependencyType = "SQL";
+        const string RddDiagnosticSourcePrefix = "rdddsc";
+        const string SqlRemoteDependencyType = "SQL";
 
         /// These internal property is copied from W3CConstants
         /// <summary>Trace-Id tag name.</summary>
@@ -134,7 +134,8 @@ namespace DurableTask.AzureStorage.Tests.Correlation
                     else if (CorrelationSettings.Current.Protocol == Protocol.W3CTraceContext)
                     {
                         UpdateTelemetry(telemetry, currentActivity, false);
-                    } else if (CorrelationSettings.Current.Protocol == Protocol.HttpCorrelationProtocol
+                    }
+                    else if (CorrelationSettings.Current.Protocol == Protocol.HttpCorrelationProtocol
                         && telemetry is ExceptionTelemetry)
                     {
                         UpdateTelemetryExceptionForHTTPCorrelationProtocol((ExceptionTelemetry)telemetry, currentActivity);
@@ -185,7 +186,8 @@ namespace DurableTask.AzureStorage.Tests.Correlation
                 if (telemetry is ExceptionTelemetry)
                 {
                     telemetry.Context.Operation.ParentId = context.TelemetryId;
-                } else
+                }
+                else
                 {
                     telemetry.Context.Operation.ParentId = !string.IsNullOrEmpty(telemetry.Context.Operation.ParentId) ? telemetry.Context.Operation.ParentId : context.TelemetryContextOperationParentId;
                 }
@@ -311,7 +313,7 @@ namespace DurableTask.AzureStorage.Tests.Correlation
             if (initializeFromCurrent)
             {
                 opTelemetry.Id = activity.SpanId.ToHexString();
-                if (activity.ParentSpanId != null)
+                if (activity.ParentSpanId != default)
                 {
                     opTelemetry.Context.Operation.ParentId = activity.ParentSpanId.ToHexString();
                 }

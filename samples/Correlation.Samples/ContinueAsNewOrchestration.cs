@@ -19,17 +19,17 @@ namespace Correlation.Samples
     using DurableTask.Core;
 
     [KnownType(typeof(HelloActivity))]
-    internal class ContinueAsNewOrchestration : TaskOrchestration<string, string>
+    class ContinueAsNewOrchestration : TaskOrchestration<string, string>
     {
-        static int counter = 0;
+        static int Counter = 0;
 
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
             string result = await context.ScheduleTask<string>(typeof(HelloActivity), input);
             result = input + ":" + result;
-            if (counter < 3)
+            if (Counter < 3)
             {
-                counter++;
+                Counter++;
                 context.ContinueAsNew(result);
             }
 
@@ -37,7 +37,7 @@ namespace Correlation.Samples
         }
     }
 
-    internal class HelloActivity : TaskActivity<string, string>
+    class HelloActivity : TaskActivity<string, string>
     {
         protected override string Execute(TaskContext context, string input)
         {

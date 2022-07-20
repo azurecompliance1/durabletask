@@ -33,7 +33,6 @@ namespace DurableTask.ServiceBus.Tests
         const int SessionMaxSizeInBytes = 10 * 1024;
         const string SessionId = "session123";
         readonly ServiceBusSessionSettings serviceBusSessionSettings = new ServiceBusSessionSettings(SessionOverflowThresholdInBytes, SessionMaxSizeInBytes);
-
         AzureTableInstanceStore azureTableInstanceStore;
         AzureStorageBlobStore azureStorageBlobStore;
 
@@ -212,7 +211,7 @@ namespace DurableTask.ServiceBus.Tests
             verifyEventInput(smallInput, convertedRuntimeStateSmall2);
         }
 
-        private Stream serializeToStream(DataConverter dataConverter, OrchestrationRuntimeState orchestrationRuntimeState, bool shouldCompress)
+        Stream serializeToStream(DataConverter dataConverter, OrchestrationRuntimeState orchestrationRuntimeState, bool shouldCompress)
         {
             string serializedState = dataConverter.Serialize(orchestrationRuntimeState);
             return Utils.WriteStringToStream(
@@ -221,7 +220,7 @@ namespace DurableTask.ServiceBus.Tests
                 out long _);
         }
 
-        private Stream serializeToStream(DataConverter dataConverter, IList<HistoryEvent> events, bool shouldCompress)
+        Stream serializeToStream(DataConverter dataConverter, IList<HistoryEvent> events, bool shouldCompress)
         {
             string serializedState = dataConverter.Serialize(events);
             return Utils.WriteStringToStream(

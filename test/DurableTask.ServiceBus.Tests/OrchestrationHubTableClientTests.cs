@@ -13,10 +13,12 @@
 
 namespace DurableTask.ServiceBus.Tests
 {
+#pragma warning disable CA2211 // Non-constant fields should not be visible
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
+    using System.Diagnostics.Contracts;
     using System.Threading.Tasks;
     using DurableTask.Core;
     using DurableTask.Core.History;
@@ -57,11 +59,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task BasicInstanceStoreTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "DONT_THROW");
 
             bool isCompleted = await TestHelpers.WaitForInstanceAsync(this.client, id, 60);
@@ -83,13 +85,13 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task MultipleInstanceStoreTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id1 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT_THROW");
-            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id2 = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT_DONTTHROW");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id1, 60, false);
@@ -112,11 +114,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task TerminateInstanceStoreTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id, 60, false);
@@ -132,11 +134,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task IntermediateStateInstanceStoreTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "WAIT");
 
             await TestHelpers.WaitForInstanceAsync(this.client, id, 60, false);
@@ -160,11 +162,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task FailingInstanceStoreTest()
         {
-            await this.taskHub.AddTaskOrchestrations(typeof (InstanceStoreTestOrchestration))
+            await this.taskHub.AddTaskOrchestrations(typeof(InstanceStoreTestOrchestration))
                 .AddTaskActivities(new Activity1())
                 .StartAsync();
 
-            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof (InstanceStoreTestOrchestration),
+            OrchestrationInstance id = await this.client.CreateOrchestrationInstanceAsync(typeof(InstanceStoreTestOrchestration),
                 "THROW");
 
             bool isCompleted = await TestHelpers.WaitForInstanceAsync(this.client, id, 60);
@@ -274,28 +276,29 @@ namespace DurableTask.ServiceBus.Tests
             return true;
         }
 
+        // TODO : history comparison!
         bool CompareHistoryEntity(AzureTableOrchestrationHistoryEventEntity expected, AzureTableOrchestrationHistoryEventEntity actual)
         {
-            // TODO : history comparison!
-            return expected.InstanceId.Equals(actual.InstanceId) && expected.ExecutionId.Equals(actual.ExecutionId) &&
-                   expected.SequenceNumber == actual.SequenceNumber;
+            return expected.InstanceId.Equals(actual.InstanceId, StringComparison.Ordinal)
+                && expected.ExecutionId.Equals(actual.ExecutionId, StringComparison.Ordinal)
+                && expected.SequenceNumber == actual.SequenceNumber;
         }
 
-        bool CompareStateEntity(AzureTableOrchestrationStateEntity expected, AzureTableOrchestrationStateEntity actual)
+        static bool CompareStateEntity(AzureTableOrchestrationStateEntity expected, AzureTableOrchestrationStateEntity actual)
         {
-            return
-                expected.State.OrchestrationInstance.InstanceId.Equals(actual.State.OrchestrationInstance.InstanceId) &&
-                expected.State.OrchestrationInstance.ExecutionId.Equals(actual.State.OrchestrationInstance.ExecutionId) &&
-                expected.State.Name.Equals(actual.State.Name) &&
-                expected.State.CreatedTime.Equals(actual.State.CreatedTime) &&
-                expected.State.LastUpdatedTime.Equals(actual.State.LastUpdatedTime) &&
+            return expected.State.OrchestrationInstance.InstanceId.Equals(actual.State.OrchestrationInstance.InstanceId, StringComparison.Ordinal)
+                && expected.State.OrchestrationInstance.ExecutionId.Equals(actual.State.OrchestrationInstance.ExecutionId, StringComparison.Ordinal)
+                && expected.State.Name.Equals(actual.State.Name, StringComparison.Ordinal)
+                && expected.State.CreatedTime.Equals(actual.State.CreatedTime)
+                && expected.State.LastUpdatedTime.Equals(actual.State.LastUpdatedTime)
                 // ReSharper disable once ConditionIsAlwaysTrueOrFalse
-                (expected.State.CompletedTime == null && actual.State.CompletedTime == null ||
-                 expected.State.CompletedTime.Equals(actual.State.CompletedTime)) &&
-                expected.State.Status.Equals(actual.State.Status) &&
-                expected.State.Input.Equals(actual.State.Input) &&
-                (string.IsNullOrWhiteSpace(expected.State.Output) && string.IsNullOrWhiteSpace(actual.State.Output) ||
-                 expected.State.Output.Equals(actual.State.Output));
+                && (expected.State.CompletedTime == default && actual.State.CompletedTime == default
+                 || expected.State.CompletedTime.Equals(actual.State.CompletedTime))
+                && expected.State.Status.Equals(actual.State.Status, StringComparison.Ordinal)
+                && expected.State.Input.Equals(actual.State.Input, StringComparison.Ordinal)
+                && (string.IsNullOrWhiteSpace(expected.State.Output)
+                 && string.IsNullOrWhiteSpace(actual.State.Output)
+                 || expected.State.Output.Equals(actual.State.Output, StringComparison.Ordinal));
         }
 
         IEnumerable<AzureTableOrchestrationHistoryEventEntity> CreateHistoryEntities(AzureTableClient azureTableClient, string instanceId,
@@ -341,10 +344,7 @@ namespace DurableTask.ServiceBus.Tests
 
         public sealed class Activity1 : TaskActivity<string, string>
         {
-            protected override string Execute(TaskContext context, string input)
-            {
-                return "Spartacus";
-            }
+            protected override string Execute(TaskContext context, string input) => "Spartacus";
         }
 
         public class InstanceStoreTestOrchestration : TaskOrchestration<string, string>
@@ -354,7 +354,8 @@ namespace DurableTask.ServiceBus.Tests
 
             public override async Task<string> RunTask(OrchestrationContext context, string input)
             {
-                string result = await context.ScheduleTask<string>(typeof (Activity1));
+                Contract.Assume(context is not null);
+                string result = await context.ScheduleTask<string>(typeof(Activity1));
                 if (string.Equals(input, "THROW", StringComparison.OrdinalIgnoreCase))
                 {
                     throw new InvalidOperationException("BADFOOD");

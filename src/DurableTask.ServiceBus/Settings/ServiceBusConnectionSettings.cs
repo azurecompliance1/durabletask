@@ -16,6 +16,7 @@ namespace DurableTask.ServiceBus.Settings
 #if NETSTANDARD2_0
     using Microsoft.Azure.ServiceBus;
     using Microsoft.Azure.ServiceBus.Primitives;
+
 #endif
     using System;
 
@@ -29,13 +30,10 @@ namespace DurableTask.ServiceBus.Settings
         /// </summary>
         /// <param name="connectionString">Service Bus connection string</param>
         /// <returns></returns>
-        public static ServiceBusConnectionSettings Create(string connectionString)
+        public static ServiceBusConnectionSettings Create(string connectionString) => new ServiceBusConnectionSettings
         {
-            return new ServiceBusConnectionSettings
-            {
-                ConnectionString = connectionString
-            };
-        }
+            ConnectionString = connectionString
+        };
 
 #if NETSTANDARD2_0
 
@@ -46,7 +44,8 @@ namespace DurableTask.ServiceBus.Settings
         /// <param name="tokenProvider">Service Bus authentication token provider</param>
         /// <param name="transportType">Service Bus messaging protocol</param>
         /// <returns></returns>
-        public static ServiceBusConnectionSettings Create(string namespaceHostName, ITokenProvider tokenProvider, TransportType transportType = TransportType.Amqp)
+        public static ServiceBusConnectionSettings Create(
+            string namespaceHostName, ITokenProvider tokenProvider, TransportType transportType = TransportType.Amqp)
         {
             return new ServiceBusConnectionSettings
             {
@@ -63,7 +62,8 @@ namespace DurableTask.ServiceBus.Settings
         /// <param name="tokenProvider">Service Bus authentication token provider</param>
         /// <param name="transportType">Service Bus messaging protocol</param>
         /// <returns></returns>
-        public static ServiceBusConnectionSettings Create(Uri serviceBusEndpoint, ITokenProvider tokenProvider, TransportType transportType = TransportType.Amqp)
+        public static ServiceBusConnectionSettings Create(
+            Uri serviceBusEndpoint, ITokenProvider tokenProvider, TransportType transportType = TransportType.Amqp)
         {
             return new ServiceBusConnectionSettings
             {
@@ -75,9 +75,7 @@ namespace DurableTask.ServiceBus.Settings
 
 #endif
 
-        private ServiceBusConnectionSettings()
-        {
-        }
+        ServiceBusConnectionSettings() { }
 
         /// <summary>
         /// Service Bus connection string

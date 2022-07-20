@@ -26,7 +26,6 @@ namespace DurableTask.Samples.Replat
         MigrateOrchestrationStatus status;
         IMigrationTasks antaresReplatMigrationTasks;
         IManagementSqlOrchestrationTasks managementDatabaseTasks;
-
         readonly RetryOptions retryOptions = new RetryOptions(TimeSpan.FromSeconds(30), 5)
         {
             BackoffCoefficient = 1,

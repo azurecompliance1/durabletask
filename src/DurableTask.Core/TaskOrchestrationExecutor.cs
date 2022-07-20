@@ -143,7 +143,7 @@ namespace DurableTask.Core
                                     // Let this exception propagate out to be handled by the dispatcher
                                     ExceptionDispatchInfo.Capture(exception).Throw();
                                 }
-                                
+
                                 this.context.FailOrchestration(exception);
                             }
                             else
@@ -231,17 +231,14 @@ namespace DurableTask.Core
         {
             readonly TaskScheduler scheduler;
 
-            public TaskOrchestrationSynchronizationContext(TaskScheduler scheduler)
-            {
-                this.scheduler = scheduler;
-            }
+            public TaskOrchestrationSynchronizationContext(TaskScheduler scheduler) => this.scheduler = scheduler;
 
             public override void Post(SendOrPostCallback sendOrPostCallback, object state)
             {
                 Task.Factory.StartNew(() => sendOrPostCallback(state),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    this.scheduler);
+                                      CancellationToken.None,
+                                      TaskCreationOptions.None,
+                                      this.scheduler);
             }
 
             public override void Send(SendOrPostCallback sendOrPostCallback, object state)

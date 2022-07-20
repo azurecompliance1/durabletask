@@ -122,13 +122,15 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryCustomHandlerFailThroughProxyTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
 
                 return taskFailed.InnerException is ArgumentNullException;
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -151,13 +153,15 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryCustomHandlerFailTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
 
                 return taskFailed.InnerException is ArgumentNullException;
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -179,13 +183,15 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryCustomHandlerPassThroughProxyTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
 
                 return taskFailed.InnerException is InvalidOperationException;
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -209,13 +215,15 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryCustomHandlerPassTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
 
                 return taskFailed.InnerException is InvalidOperationException;
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -238,14 +246,16 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryOnReasonCustomHandlerThroughProxyTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
                 Assert.IsInstanceOfType(taskFailed.InnerException, typeof(InvalidOperationException),
                     "InnerException is not InvalidOperationException.");
                 return e.Message.StartsWith("DoWork Failed. RetryCount is:");
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -268,14 +278,16 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryOnReasonCustomHandlerTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.Handle = e =>
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                Handle = e =>
             {
                 Assert.IsInstanceOfType(e, typeof(TaskFailedException), "Exception is not TaskFailedException.");
                 var taskFailed = (TaskFailedException)e;
                 Assert.IsInstanceOfType(taskFailed.InnerException, typeof(InvalidOperationException),
                     "InnerException is not InvalidOperationException.");
                 return e.Message.StartsWith("DoWork Failed. RetryCount is:");
+            }
             };
 
             var retryTask = new RetryTask(2);
@@ -298,9 +310,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryTimeoutThroughProxyTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10);
-            retryOptions.BackoffCoefficient = 2;
-            retryOptions.RetryTimeout = TimeSpan.FromSeconds(10);
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10)
+            {
+                BackoffCoefficient = 2,
+                RetryTimeout = TimeSpan.FromSeconds(10)
+            };
 
             var retryTask = new RetryTask(3);
 
@@ -324,9 +338,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryTimeoutTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10);
-            retryOptions.BackoffCoefficient = 2;
-            retryOptions.RetryTimeout = TimeSpan.FromSeconds(10);
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(5), 10)
+            {
+                BackoffCoefficient = 2,
+                RetryTimeout = TimeSpan.FromSeconds(10)
+            };
 
             var retryTask = new RetryTask(3);
             await this.taskHub.AddTaskOrchestrations(new TestObjectCreator<TaskOrchestration>(RetryName, RetryVersion,
@@ -349,9 +365,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryMaxIntervalThroughProxyTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.BackoffCoefficient = 10;
-            retryOptions.MaxRetryInterval = TimeSpan.FromSeconds(5);
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                BackoffCoefficient = 10,
+                MaxRetryInterval = TimeSpan.FromSeconds(5)
+            };
 
             var retryTask = new RetryTask(2);
             await this.taskHub.AddTaskOrchestrations(new TestObjectCreator<TaskOrchestration>(RetryName, RetryVersion,
@@ -374,9 +392,11 @@ namespace DurableTask.ServiceBus.Tests
         [TestMethod]
         public async Task RetryMaxIntervalTest()
         {
-            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3);
-            retryOptions.BackoffCoefficient = 10;
-            retryOptions.MaxRetryInterval = TimeSpan.FromSeconds(5);
+            var retryOptions = new RetryOptions(TimeSpan.FromSeconds(3), 3)
+            {
+                BackoffCoefficient = 10,
+                MaxRetryInterval = TimeSpan.FromSeconds(5)
+            };
 
             var retryTask = new RetryTask(2);
             await this.taskHub.AddTaskOrchestrations(new TestObjectCreator<TaskOrchestration>(RetryName, RetryVersion,
@@ -433,8 +453,10 @@ namespace DurableTask.ServiceBus.Tests
             ArgumentException argumentException = null;
             try
             {
+#pragma warning disable CA1806 // Do not ignore method results
                 // ReSharper disable once ObjectCreationAsStatement
                 new RetryOptions(TimeSpan.Zero, 10);
+#pragma warning restore CA1806 // Do not ignore method results
             }
             catch (ArgumentException ex)
             {

@@ -39,7 +39,7 @@ namespace DurableTask.Core.Logging
 
             protected override string CreateLogMessage() => "Durable task hub worker is starting";
 
-            void IEventSourceEvent.WriteEventSource() => 
+            void IEventSourceEvent.WriteEventSource() =>
                 StructuredEventSource.Log.TaskHubWorkerStarting(Utils.AppName, Utils.PackageVersion);
         }
 
@@ -59,7 +59,7 @@ namespace DurableTask.Core.Logging
             [StructuredLogField]
             public long LatencyMs { get; }
 
-            protected override string CreateLogMessage() => 
+            protected override string CreateLogMessage() =>
                 $"Durable task hub worker started successfully after {this.LatencyMs}ms";
 
             void IEventSourceEvent.WriteEventSource() =>
@@ -105,7 +105,7 @@ namespace DurableTask.Core.Logging
             [StructuredLogField]
             public long LatencyMs { get; }
 
-            protected override string CreateLogMessage() => 
+            protected override string CreateLogMessage() =>
                 $"Durable task hub worker stopped successfully after {this.LatencyMs}ms";
 
             void IEventSourceEvent.WriteEventSource() =>
@@ -840,7 +840,7 @@ namespace DurableTask.Core.Logging
 
             [StructuredLogField]
             public string Name { get; }
-            
+
             [StructuredLogField]
             public int ActionCount { get; }
 

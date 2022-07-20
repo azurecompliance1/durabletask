@@ -179,10 +179,7 @@ namespace DurableTask.Core
         /// Adds a new history event to the Events list and NewEvents list
         /// </summary>
         /// <param name="historyEvent">The new history event to add</param>
-        public void AddEvent(HistoryEvent historyEvent)
-        {
-            AddEvent(historyEvent, true);
-        }
+        public void AddEvent(HistoryEvent historyEvent) => AddEvent(historyEvent, true);
 
         ExecutionStartedEvent GetExecutionStartedEventOrThrow()
         {
@@ -288,6 +285,7 @@ namespace DurableTask.Core
 
             return runtimeStateDump;
 #else
+#pragma warning disable IDE0022 // Use expression body for methods
             return new OrchestrationRuntimeStateDump
             {
                 EventCount = Events.Count,
@@ -295,6 +293,7 @@ namespace DurableTask.Core
                 Events = new List<HistoryEvent>(),
                 NewEvents = new List<HistoryEvent>(),
             };
+#pragma warning restore IDE0022 // Use expression body for methods
 #endif
         }
 

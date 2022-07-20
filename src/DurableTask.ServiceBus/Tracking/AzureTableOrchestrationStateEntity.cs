@@ -41,7 +41,6 @@ namespace DurableTask.ServiceBus.Tracking
         /// </summary>
         /// <param name="state">The orchestration state</param>
         public AzureTableOrchestrationStateEntity(OrchestrationState state)
-            : this()
         {
             State = state;
             TaskTimeStamp = state.CompletedTime;
@@ -54,14 +53,15 @@ namespace DurableTask.ServiceBus.Tracking
 
         internal override IEnumerable<ITableEntity> BuildDenormalizedEntities()
         {
-            var entity1 = new AzureTableOrchestrationStateEntity(State);
-
-            entity1.PartitionKey = AzureTableConstants.InstanceStatePrefix;
-            entity1.RowKey = AzureTableConstants.InstanceStateExactRowPrefix +
+            var entity1 = new AzureTableOrchestrationStateEntity(State)
+            {
+                PartitionKey = AzureTableConstants.InstanceStatePrefix,
+                RowKey = AzureTableConstants.InstanceStateExactRowPrefix +
                              AzureTableConstants.JoinDelimiter + State.OrchestrationInstance.InstanceId +
-                             AzureTableConstants.JoinDelimiter + State.OrchestrationInstance.ExecutionId;
+                             AzureTableConstants.JoinDelimiter + State.OrchestrationInstance.ExecutionId
+            };
 
-            return new [] { entity1 };
+            return new[] { entity1 };
             // TODO : additional indexes for efficient querying in the future
         }
 
@@ -71,10 +71,11 @@ namespace DurableTask.ServiceBus.Tracking
         /// <param name="operationContext">The operation context</param>
         public override IDictionary<string, EntityProperty> WriteEntity(OperationContext operationContext)
         {
-            var returnValues = new Dictionary<string, EntityProperty>();
-
-            returnValues.Add("InstanceId", new EntityProperty(State.OrchestrationInstance.InstanceId));
-            returnValues.Add("ExecutionId", new EntityProperty(State.OrchestrationInstance.ExecutionId));
+            var returnValues = new Dictionary<string, EntityProperty>
+            {
+                { "InstanceId", new EntityProperty(State.OrchestrationInstance.InstanceId) },
+                { "ExecutionId", new EntityProperty(State.OrchestrationInstance.ExecutionId) }
+            };
 
             if (State.ParentInstance != null)
             {
@@ -164,7 +165,7 @@ namespace DurableTask.ServiceBus.Tracking
             }
         }
 
-        private IDictionary<string, string> GetTagsFromString(IDictionary<string, EntityProperty> properties)
+        IDictionary<string, string> GetTagsFromString(IDictionary<string, EntityProperty> properties)
         {
             string strTags = GetValue("Tags", properties, property => property.StringValue);
             if (string.IsNullOrWhiteSpace(strTags))

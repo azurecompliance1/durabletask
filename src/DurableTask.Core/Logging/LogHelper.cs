@@ -613,9 +613,6 @@ namespace DurableTask.Core.Logging
         }
         #endregion
 
-        void WriteStructuredLog(ILogEvent logEvent, Exception exception = null)
-        {
-            this.log?.LogDurableEvent(logEvent, exception);
-        }
+        void WriteStructuredLog(ILogEvent logEvent, Exception exception = null) => this.log?.LogDurableEvent(logEvent, exception);
     }
 }

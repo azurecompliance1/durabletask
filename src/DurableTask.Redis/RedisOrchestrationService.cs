@@ -28,17 +28,17 @@ namespace DurableTask.Redis
     /// </summary>
     public class RedisOrchestrationService : IOrchestrationService, IOrchestrationServiceClient
     {
-        private readonly SemaphoreSlim startLock = new SemaphoreSlim(1);
+        readonly SemaphoreSlim startLock = new SemaphoreSlim(1);
 
-        private readonly RedisOrchestrationServiceSettings settings;
+        readonly RedisOrchestrationServiceSettings settings;
 
         // Initialized in StartAsync()
-        private ConnectionMultiplexer redisConnection;
-        private OrchestrationSessionPartitionHandler partitionOrchestrationManager;
-        private ActivityTaskHandler activityTaskManager;
-        private WorkerRecycler workerRecycler;
-        private RedisLogger logger;
-        private string workerGuid;
+        ConnectionMultiplexer redisConnection;
+        OrchestrationSessionPartitionHandler partitionOrchestrationManager;
+        ActivityTaskHandler activityTaskManager;
+        WorkerRecycler workerRecycler;
+        RedisLogger logger;
+        string workerGuid;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RedisOrchestrationService"/> class.
@@ -104,7 +104,7 @@ namespace DurableTask.Redis
             List<string> events = newOrchestrationRuntimeState.Events.Select(histEvent => histEvent as TaskCompletedEvent)
                 .Where(taskCompletedEvent => taskCompletedEvent != null)
                 .OrderBy(task => task.TaskScheduledId)
-                .Select(TaskCompletedEvent => $"{{\"id\": {TaskCompletedEvent.TaskScheduledId}, \"Result\": {TaskCompletedEvent.Result}}}")
+                .Select(taskCompletedEvent => $"{{\"id\": {taskCompletedEvent.TaskScheduledId}, \"Result\": {taskCompletedEvent.Result}}}")
                 .ToList();
             string logMessage = "Current events processed: " + string.Join(",", events);
             await this.logger.LogAsync(logMessage);
@@ -116,7 +116,7 @@ namespace DurableTask.Redis
                 transaction.SendActivityMessage(outboundMessage);
             }
 
-            foreach(TaskMessage message in orchestratorMessages)
+            foreach (TaskMessage message in orchestratorMessages)
             {
                 transaction.SendControlQueueMessage(message);
             }
@@ -124,7 +124,7 @@ namespace DurableTask.Redis
             if (continuedAsNewMessage != null)
             {
                 transaction.SendControlQueueMessage(continuedAsNewMessage);
-            } 
+            }
 
             // TODO send timer messages in transaction
 
@@ -146,12 +146,9 @@ namespace DurableTask.Redis
             await this.logger.LogAsync(logMessage);
         }
 
+        // No need to renew, as current lock implementation lasts as long as process holds it.
         /// <inheritdoc />
-        public Task RenewTaskOrchestrationWorkItemLockAsync(TaskOrchestrationWorkItem workItem)
-        {
-            // No need to renew, as current lock implementation lasts as long as process holds it.
-            return Task.CompletedTask;
-        }
+        public Task RenewTaskOrchestrationWorkItemLockAsync(TaskOrchestrationWorkItem workItem) => Task.CompletedTask;
 
         /// <inheritdoc />
         public async Task ReleaseTaskOrchestrationWorkItemAsync(TaskOrchestrationWorkItem workItem)
@@ -216,12 +213,9 @@ namespace DurableTask.Redis
             await this.logger.LogAsync(logMessage);
         }
 
+        // TODO: At this time this is sufficient, as locks last indefinitely
         /// <inheritdoc />
-        public Task<TaskActivityWorkItem> RenewTaskActivityWorkItemLockAsync(TaskActivityWorkItem workItem)
-        {
-            // TODO: At this time this is sufficient, as locks last indefinitely
-            return Task.FromResult(workItem);
-        }
+        public Task<TaskActivityWorkItem> RenewTaskActivityWorkItemLockAsync(TaskActivityWorkItem workItem) => Task.FromResult(workItem);
 
         /// <inheritdoc />
         public async Task AbandonTaskActivityWorkItemAsync(TaskActivityWorkItem workItem)
@@ -238,26 +232,17 @@ namespace DurableTask.Redis
         #endregion
 
         #region Task Hub Methods
+        // No operation needed, Redis objects are created on the fly if necessary.
         /// <inheritdoc />
-        public Task CreateAsync()
-        {
-            // No operation needed, Redis objects are created on the fly if necessary.
-            return Task.CompletedTask;
-        }
+        public Task CreateAsync() => Task.CompletedTask;
 
+        // No operation needed, Redis objects are created on the fly if necessary.
         /// <inheritdoc />
-        public Task CreateAsync(bool recreateInstanceStore)
-        {
-            // No operation needed, Redis objects are created on the fly if necessary.
-            return Task.CompletedTask;
-        }
+        public Task CreateAsync(bool recreateInstanceStore) => Task.CompletedTask;
 
+        // No operation needed, Redis objects are created on the fly if necessary.
         /// <inheritdoc />
-        public Task CreateIfNotExistsAsync()
-        {
-            // No operation needed, Redis objects are created on the fly if necessary.
-            return Task.CompletedTask;
-        }
+        public Task CreateIfNotExistsAsync() => Task.CompletedTask;
 
         /// <inheritdoc />
         public async Task DeleteAsync()
@@ -289,10 +274,7 @@ namespace DurableTask.Redis
         }
 
         /// <inheritdoc />
-        public async Task DeleteAsync(bool deleteInstanceStore)
-        {
-            await this.DeleteAsync();
-        }
+        public Task DeleteAsync(bool deleteInstanceStore) => this.DeleteAsync();
 
         /// <inheritdoc />
         public async Task StartAsync()
@@ -314,7 +296,7 @@ namespace DurableTask.Redis
             this.startLock.Release();
         }
 
-        private void RegisterWorker()
+        void RegisterWorker()
         {
             IDatabase database = this.redisConnection.GetDatabase();
             string workerSetKey = RedisKeyNameResolver.GetWorkerSetKey(this.settings.TaskHubName);
@@ -333,24 +315,15 @@ namespace DurableTask.Redis
         }
 
         /// <inheritdoc />
-        public async Task StopAsync(bool isForced)
-        {
-            await this.StopAsync();
-        }
+        public Task StopAsync(bool isForced) => this.StopAsync();
         #endregion
 
         #region Dispatcher Methods
         /// <inheritdoc />
-        public int GetDelayInSecondsAfterOnFetchException(Exception exception)
-        {
-            return 0;
-        }
+        public int GetDelayInSecondsAfterOnFetchException(Exception exception) => 0;
 
         /// <inheritdoc />
-        public int GetDelayInSecondsAfterOnProcessException(Exception exception)
-        {
-            return 0;
-        }
+        public int GetDelayInSecondsAfterOnProcessException(Exception exception) => 0;
         #endregion
 
         #region Client Methods

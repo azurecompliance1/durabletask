@@ -85,10 +85,7 @@ namespace DurableTask.AzureServiceFabric
         /// Disposes the object. The object should be disposed after <see cref="TaskHubWorker.StopAsync()"/>
         /// is invoked on the <see cref="TaskHubWorker" /> created with the <see cref="OrchestrationService"/>.
         /// </summary>
-        public void Dispose()
-        {
-            this.cancellationTokenSource.Dispose();
-        }
+        public void Dispose() => this.cancellationTokenSource.Dispose();
 
         void EnsureValidInstance()
         {

@@ -16,7 +16,7 @@ namespace DurableTask.Core.Tests
     using System;
     using DurableTask.Core;
 
-    internal class TestObjectCreator<T> : ObjectCreator<T>
+    class TestObjectCreator<T> : ObjectCreator<T>
     {
         readonly Func<T> creator;
 

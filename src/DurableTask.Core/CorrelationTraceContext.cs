@@ -21,16 +21,18 @@ namespace DurableTask.Core
     /// </summary>
     public class CorrelationTraceContext
     {
+#pragma warning disable IDE1006 // Naming Styles
         static readonly AsyncLocal<TraceContextBase> current = new AsyncLocal<TraceContextBase>();
-        static readonly AsyncLocal<bool> generateDependencyTracking = new AsyncLocal<bool>(); 
+        static readonly AsyncLocal<bool> generateDependencyTracking = new AsyncLocal<bool>();
+#pragma warning restore IDE1006 // Naming Styles
 
         /// <summary>
         /// Share the TraceContext on the call graph contextBase.
         /// </summary>
         public static TraceContextBase Current
         {
-            get { return current.Value; }
-            set { current.Value = value; }
+            get => current.Value;
+            set => current.Value = value;
         }
 
         /// <summary>
@@ -38,8 +40,8 @@ namespace DurableTask.Core
         /// </summary>
         public static bool GenerateDependencyTracking
         {
-            get { return generateDependencyTracking.Value;  }
-            set { generateDependencyTracking.Value = value; }
+            get => generateDependencyTracking.Value;
+            set => generateDependencyTracking.Value = value;
         }
     }
 }

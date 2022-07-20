@@ -562,7 +562,7 @@ namespace DurableTask.AzureStorage.Partitioning
             return null;
         }
 
-        private class AppLeaseInfo
+        class AppLeaseInfo
         {
             public string OwnerId { get; set; }
             public string DesiredSwapId { get; set; }

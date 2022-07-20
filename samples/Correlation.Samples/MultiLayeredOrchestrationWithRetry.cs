@@ -13,15 +13,15 @@
 
 namespace Correlation.Samples
 {
+    using System;
     using System.Runtime.Serialization;
     using System.Threading.Tasks;
     using DurableTask.Core;
-    using System;
 
     [KnownType(typeof(MultiLayeredOrchestrationChildWithRetry))]
     [KnownType(typeof(NeedToExecuteTwice01))]
     [KnownType(typeof(NeedToExecuteTwice02))]
-    internal class MultiLayeredOrchestrationWithRetryOrchestrator : TaskOrchestration<string, string>
+    class MultiLayeredOrchestrationWithRetryOrchestrator : TaskOrchestration<string, string>
     {
         public override Task<string> RunTask(OrchestrationContext context, string input)
         {
@@ -32,7 +32,7 @@ namespace Correlation.Samples
 
     [KnownType(typeof(NeedToExecuteTwice01))]
     [KnownType(typeof(NeedToExecuteTwice02))]
-    internal class MultiLayeredOrchestrationChildWithRetry : TaskOrchestration<string, string>
+    class MultiLayeredOrchestrationChildWithRetry : TaskOrchestration<string, string>
     {
         public override async Task<string> RunTask(OrchestrationContext context, string input)
         {
@@ -42,7 +42,7 @@ namespace Correlation.Samples
         }
     }
 
-    internal class NeedToExecuteTwice01 : TaskActivity<string, string>
+    class NeedToExecuteTwice01 : TaskActivity<string, string>
     {
         static int Counter = 0;
 
@@ -58,7 +58,7 @@ namespace Correlation.Samples
         }
     }
 
-    internal class NeedToExecuteTwice02 : TaskActivity<string, string>
+    class NeedToExecuteTwice02 : TaskActivity<string, string>
     {
         static int Counter = 0;
 

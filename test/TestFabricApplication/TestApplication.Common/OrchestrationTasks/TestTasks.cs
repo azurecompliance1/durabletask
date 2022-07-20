@@ -14,12 +14,11 @@
 namespace TestApplication.Common.OrchestrationTasks
 {
     using System.Threading.Tasks;
-
     using TestApplication.Common.Orchestrations;
 
     public class TestTasks : ITestTasks
     {
-        static int generationCount = 0;
+        static int GenerationCount = 0;
 
         /// <summary>
         /// Increments Generation Count variable.
@@ -27,7 +26,7 @@ namespace TestApplication.Common.OrchestrationTasks
         /// <returns>Generation count</returns>
         public Task<int> IncrementGenerationCount()
         {
-            return Task.FromResult(++generationCount);
+            return Task.FromResult(++GenerationCount);
         }
 
         /// <summary>
@@ -36,8 +35,8 @@ namespace TestApplication.Common.OrchestrationTasks
         /// <returns>Generation coutner value</returns>
         public Task<int> ResetGenerationCounter()
         {
-            generationCount = 0;
-            return Task.FromResult(generationCount);
+            GenerationCount = 0;
+            return Task.FromResult(GenerationCount);
         }
 
         /// <summary>
@@ -45,7 +44,7 @@ namespace TestApplication.Common.OrchestrationTasks
         /// </summary>
         /// <param name="remainingAttempts">remaining number of attempts</param>
         /// <returns>bool indicating whether task completed successfully or not.</returns>
-        public  Task<bool> ThrowExceptionAsync(int remainingAttempts)
+        public Task<bool> ThrowExceptionAsync(int remainingAttempts)
         {
             if (remainingAttempts > 0)
             {

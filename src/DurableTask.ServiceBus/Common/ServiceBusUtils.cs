@@ -32,13 +32,14 @@ namespace DurableTask.ServiceBus.Common.Abstraction
     using Microsoft.Azure.ServiceBus.InteropExtensions;
 #endif
 
-    internal static class ServiceBusUtils
+    static class ServiceBusUtils
     {
         internal static readonly TimeSpan TokenTimeToLive = TimeSpan.FromDays(30);
 
         public static Task<Message> GetBrokeredMessageFromObjectAsync(object serializableObject, CompressionSettings compressionSettings)
         {
-            return GetBrokeredMessageFromObjectAsync(serializableObject, compressionSettings, new ServiceBusMessageSettings(), null, null, null, DateTimeUtils.MinDateTime);
+            return GetBrokeredMessageFromObjectAsync(
+                serializableObject, compressionSettings, new ServiceBusMessageSettings(), null, null, null, DateTimeUtils.MinDateTime);
         }
 
         public static async Task<Message> GetBrokeredMessageFromObjectAsync(
@@ -64,7 +65,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
                         .MakeGenericType(serializableObject.GetType())
                         .GetField("Instance")
                         ?.GetValue(null);
-                    serialiser?.WriteObject(ms,serializableObject);
+                    serialiser?.WriteObject(ms, serializableObject);
                     return new Message(ms.ToArray()) { SessionId = instance?.InstanceId };
                 }
 #else
@@ -360,7 +361,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
                         TraceEventType.Critical,
                         "MaxDeliveryCountApproaching",
                         "Delivery count for message with id {0} is {1}. Message will be deadlettered if processing continues to fail.",
-                        message.MessageId, 
+                        message.MessageId,
                         message.SystemProperties.DeliveryCount);
                 }
             }

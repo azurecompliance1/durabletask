@@ -16,14 +16,11 @@ namespace TestApplication.StatefulService
     using System;
     using System.Collections.Generic;
     using System.Linq;
-
-    using DurableTask.Core;
     using DurableTask.AzureServiceFabric;
+    using DurableTask.Core;
     using DurableTask.Test.Orchestrations.Performance;
-
     using TestApplication.Common.Orchestrations;
     using TestApplication.Common.OrchestrationTasks;
-
 
     /// <inheritdoc/>
     public class TestOrchestrationsProvider
@@ -49,7 +46,7 @@ namespace TestApplication.StatefulService
         }
 
         /// <inheritdoc/>
-        private IEnumerable<Type> GetActivityTypes()
+        IEnumerable<Type> GetActivityTypes()
         {
             return new Type[]
             {
@@ -59,7 +56,7 @@ namespace TestApplication.StatefulService
         }
 
         /// <inheritdoc/>
-        private IEnumerable<Type> GetOrchestrationTypes()
+        IEnumerable<Type> GetOrchestrationTypes()
         {
             return new Type[]
             {
@@ -76,7 +73,7 @@ namespace TestApplication.StatefulService
         }
 
         /// <inheritdoc/>
-        private IEnumerable<KeyValuePair<string, TaskOrchestration>> GetTaskOrchestrations()
+        IEnumerable<KeyValuePair<string, TaskOrchestration>> GetTaskOrchestrations()
         {
             yield return new KeyValuePair<string, TaskOrchestration>(typeof(OrchestrationRunningIntoRetry).Name, new OrchestrationRunningIntoRetry());
         }

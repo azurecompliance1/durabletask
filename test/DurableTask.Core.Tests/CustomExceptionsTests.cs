@@ -54,11 +54,11 @@ namespace DurableTask.Core.Tests
             this.customExceptions.ForEach(_ =>
             {
                 // Get the default constructor
-                ConstructorInfo constructor = _.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis, new Type[0], null);
+                ConstructorInfo constructor = _.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis, Array.Empty<Type>(), null);
                 Assert.IsNotNull(constructor, $"Default constructor .ctor() for exception '{_.FullName}' does not exist");
 
                 // Create an instance to make sure no exception is raised
-                constructor.Invoke(new object[0]);
+                constructor.Invoke(Array.Empty<object>());
 
                 // Get the constructor with a single string parameter
                 constructor = _.GetConstructor(BindingFlags.Instance | BindingFlags.Public, null, CallingConventions.HasThis, new[] { typeof(string) }, null);

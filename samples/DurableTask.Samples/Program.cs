@@ -22,6 +22,8 @@ namespace DurableTask.Samples
     using System.IO;
     using System.Linq;
     using System.Threading;
+    using DurableTask.Core;
+    using DurableTask.Core.Tracing;
     using DurableTask.Samples.AverageCalculator;
     using DurableTask.Samples.Common.WorkItems;
     using DurableTask.Samples.Cron;
@@ -31,23 +33,21 @@ namespace DurableTask.Samples
     using DurableTask.Samples.Replat;
     using DurableTask.Samples.Signal;
     using DurableTask.Samples.SumOfSquares;
-    using DurableTask.Core;
-    using DurableTask.Core.Tracing;
     using DurableTask.ServiceBus;
     using DurableTask.ServiceBus.Tracking;
     using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
 
-    internal class Program
+    class Program
     {
         static readonly Options ArgumentOptions = new Options();
-        static ObservableEventListener eventListener;
+        static ObservableEventListener EventListener;
 
         [STAThread]
         static void Main(string[] args)
         {
-            eventListener = new ObservableEventListener();
-            eventListener.LogToConsole();
-            eventListener.EnableEvents(DefaultEventSource.Log, EventLevel.LogAlways);
+            EventListener = new ObservableEventListener();
+            EventListener.LogToConsole();
+            EventListener.EnableEvents(DefaultEventSource.Log, EventLevel.LogAlways);
 
             if (CommandLine.Parser.Default.ParseArgumentsStrict(args, ArgumentOptions))
             {
@@ -62,7 +62,7 @@ namespace DurableTask.Samples
 
                 var taskHubClient = new TaskHubClient(orchestrationServiceAndClient);
                 var taskHubWorker = new TaskHubWorker(orchestrationServiceAndClient);
-                
+
                 if (ArgumentOptions.CreateHub)
                 {
                     orchestrationServiceAndClient.CreateIfNotExistsAsync().Wait();
@@ -85,12 +85,12 @@ namespace DurableTask.Samples
                                 throw new ArgumentException("parameters");
                             }
 
-                            instance = taskHubClient.CreateOrchestrationInstanceAsync(typeof(GreetingsOrchestration2), instanceId, 
+                            instance = taskHubClient.CreateOrchestrationInstanceAsync(typeof(GreetingsOrchestration2), instanceId,
                                 int.Parse(ArgumentOptions.Parameters[0])).Result;
                             break;
                         case "Cron":
                             // Sample Input: "0 12 * */2 Mon"
-                            instance = taskHubClient.CreateOrchestrationInstanceAsync(typeof(CronOrchestration), instanceId, 
+                            instance = taskHubClient.CreateOrchestrationInstanceAsync(typeof(CronOrchestration), instanceId,
                                 (ArgumentOptions.Parameters != null && ArgumentOptions.Parameters.Length > 0) ? ArgumentOptions.Parameters[0] : null).Result;
                             break;
                         case "Average":
@@ -108,9 +108,9 @@ namespace DurableTask.Samples
                             break;
                         case "SumOfSquares":
                             instance = taskHubClient.CreateOrchestrationInstanceAsync(
-                                "SumOfSquaresOrchestration", 
-                                "V1", 
-                                instanceId, 
+                                "SumOfSquaresOrchestration",
+                                "V1",
+                                instanceId,
                                 File.ReadAllText("SumofSquares\\BagOfNumbers.json"),
                                 new Dictionary<string, string>(1) { { "Category", "testing" } }).Result;
                             break;
@@ -139,7 +139,7 @@ namespace DurableTask.Samples
                 {
                     Console.WriteLine("Run RaiseEvent");
 
-                    if (string.IsNullOrWhiteSpace(ArgumentOptions.InstanceId)) 
+                    if (string.IsNullOrWhiteSpace(ArgumentOptions.InstanceId))
                     {
                         throw new ArgumentException("instanceId");
                     }
@@ -163,10 +163,10 @@ namespace DurableTask.Samples
                     {
                         taskHubWorker.AddTaskOrchestrations(
                             typeof(GreetingsOrchestration),
-                            typeof(GreetingsOrchestration2), 
+                            typeof(GreetingsOrchestration2),
                             typeof(CronOrchestration),
-                            typeof(AverageCalculatorOrchestration), 
-                            typeof(ErrorHandlingOrchestration), 
+                            typeof(AverageCalculatorOrchestration),
+                            typeof(ErrorHandlingOrchestration),
                             typeof(SignalOrchestration),
                             typeof(MigrateOrchestration),
                             typeof(SumOfSquaresOrchestration)
@@ -174,14 +174,14 @@ namespace DurableTask.Samples
 
                         taskHubWorker.AddTaskOrchestrations(
                             new NameValueObjectCreator<TaskOrchestration>("SumOfSquaresOrchestration", "V1", typeof(SumOfSquaresOrchestration)));
-                        
+
                         taskHubWorker.AddTaskActivities(
-                            new GetUserTask(), 
-                            new SendGreetingTask(), 
-                            new CronTask(), 
-                            new ComputeSumTask(), 
-                            new GoodTask(), 
-                            new BadTask(), 
+                            new GetUserTask(),
+                            new SendGreetingTask(),
+                            new CronTask(),
+                            new ComputeSumTask(),
+                            new GoodTask(),
+                            new BadTask(),
                             new CleanupTask(),
                             new EmailTask(),
                             new SumOfSquaresTask()

@@ -16,13 +16,12 @@ namespace DurableTask.AzureServiceFabric.Service
     using System;
     using System.Collections.Generic;
     using System.Web.Http.Dependencies;
-
     using Microsoft.Extensions.DependencyInjection;
 
     /// <inheritdoc/>
     public sealed class DefaultDependencyResolver : IDependencyResolver
     {
-        private IServiceProvider provider;
+        readonly IServiceProvider provider;
 
         /// <summary>
         /// Creates an instance of <see cref="DefaultDependencyResolver"/>.
@@ -34,22 +33,13 @@ namespace DurableTask.AzureServiceFabric.Service
         }
 
         /// <inheritdoc/>
-        public object GetService(Type serviceType)
-        {
-            return provider.GetService(serviceType);
-        }
+        public object GetService(Type serviceType) => provider.GetService(serviceType);
 
         /// <inheritdoc/>
-        public IEnumerable<object> GetServices(Type serviceType)
-        {
-            return provider.GetServices(serviceType);
-        }
+        public IEnumerable<object> GetServices(Type serviceType) => provider.GetServices(serviceType);
 
         /// <inheritdoc/>
-        public IDependencyScope BeginScope()
-        {
-            return this;
-        }
+        public IDependencyScope BeginScope() => this;
 
         #region IDisposable Support
         /// <inheritdoc />

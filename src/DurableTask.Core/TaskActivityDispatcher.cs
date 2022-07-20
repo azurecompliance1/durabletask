@@ -72,19 +72,13 @@ namespace DurableTask.Core
         /// <summary>
         /// Starts the dispatcher to start getting and processing task activities
         /// </summary>
-        public async Task StartAsync()
-        {
-            await this.dispatcher.StartAsync();
-        }
+        public Task StartAsync() => this.dispatcher.StartAsync();
 
         /// <summary>
         /// Stops the dispatcher to stop getting and processing task activities
         /// </summary>
         /// <param name="forced">Flag indicating whether to stop gracefully or immediately</param>
-        public async Task StopAsync(bool forced)
-        {
-            await this.dispatcher.StopAsync(forced);
-        }
+        public Task StopAsync(bool forced) => this.dispatcher.StopAsync(forced);
 
         Task<TaskActivityWorkItem> OnFetchWorkItemAsync(TimeSpan receiveTimeout, CancellationToken cancellationToken)
         {
@@ -116,7 +110,7 @@ namespace DurableTask.Core
                 if (taskMessage.Event.EventType != EventType.TaskScheduled)
                 {
                     this.logHelper.TaskActivityDispatcherError(
-                        workItem, 
+                        workItem,
                         $"The activity worker received an event of type '{taskMessage.Event.EventType}' but only '{EventType.TaskScheduled}' is supported.");
                     throw TraceHelper.TraceException(
                         TraceEventType.Critical,
@@ -173,8 +167,10 @@ namespace DurableTask.Core
                             throw new TypeMissingException($"TaskActivity {scheduledEvent.Name} version {scheduledEvent.Version} was not found");
                         }
 
-                        var context = new TaskContext(taskMessage.OrchestrationInstance);
-                        context.ErrorPropagationMode = this.errorPropagationMode;
+                        var context = new TaskContext(taskMessage.OrchestrationInstance)
+                        {
+                            ErrorPropagationMode = this.errorPropagationMode
+                        };
 
                         HistoryEvent? responseEvent;
 
@@ -185,7 +181,7 @@ namespace DurableTask.Core
                         }
                         catch (Exception e) when (e is not TaskFailureException && !Utils.IsFatal(e) && !Utils.IsExecutionAborting(e))
                         {
-                            // These are unexpected exceptions that occur in the task activity abstraction. Normal exceptions from 
+                            // These are unexpected exceptions that occur in the task activity abstraction. Normal exceptions from
                             // activities are expected to be translated into TaskFailureException and handled outside the middleware
                             // context (see further below).
                             TraceHelper.TraceExceptionInstance(TraceEventType.Error, "TaskActivityDispatcher-ProcessException", taskMessage.OrchestrationInstance, e);
@@ -276,7 +272,7 @@ namespace DurableTask.Core
 
                 DateTime renewAt = workItem.LockedUntilUtc.Subtract(TimeSpan.FromSeconds(30));
 
-                // service bus clock sku can really mess us up so just always renew every 30 secs regardless of 
+                // service bus clock sku can really mess us up so just always renew every 30 secs regardless of
                 // what the message.LockedUntilUtc says. if the sku is negative then in the worst case we will be
                 // renewing every 5 secs
                 //
@@ -316,7 +312,7 @@ namespace DurableTask.Core
             }
             catch (ObjectDisposedException)
             {
-                // brokered message is already disposed probably through 
+                // brokered message is already disposed probably through
                 // a complete call in the main dispatcher thread
             }
         }

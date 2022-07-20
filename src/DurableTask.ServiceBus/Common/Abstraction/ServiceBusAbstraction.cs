@@ -119,7 +119,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
     /// <inheritdoc />
     public class IMessageSession
     {
-        Microsoft.Azure.ServiceBus.IMessageSession session;
+        readonly Microsoft.Azure.ServiceBus.IMessageSession session;
 
         public IMessageSession(Microsoft.Azure.ServiceBus.IMessageSession session)
         {
@@ -240,7 +240,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
     /// <inheritdoc />
     public class Message
     {
-        Microsoft.Azure.ServiceBus.Message msg;
+        readonly Microsoft.Azure.ServiceBus.Message msg;
 
         public Message(Microsoft.Azure.ServiceBus.Message msg)
         {
@@ -266,7 +266,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
         {
             this.msg = new Microsoft.Azure.ServiceBus.Message(serializableObject);
         }
-        
+
 
         public string MessageId
         {
@@ -291,7 +291,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
             get => this.msg?.SessionId;
             set => this.msg.SessionId = value;
         }
-        
+
 #else
 
     public class Message : IDisposable
@@ -525,7 +525,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
     /// <inheritdoc />
     public class TokenProvider : Microsoft.Azure.ServiceBus.Primitives.ITokenProvider
     {
-        private readonly Microsoft.Azure.ServiceBus.Primitives.TokenProvider tokenProvider;
+        readonly Microsoft.Azure.ServiceBus.Primitives.TokenProvider tokenProvider;
 
         public TokenProvider(Microsoft.Azure.ServiceBus.Primitives.TokenProvider t)
         {
@@ -919,7 +919,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
 #if NETSTANDARD2_0
     public class SessionClient
     {
-        Microsoft.Azure.ServiceBus.SessionClient sessionClient;
+        readonly Microsoft.Azure.ServiceBus.SessionClient sessionClient;
 
         public SessionClient(ServiceBusConnection serviceBusConnection, string entityPath, Microsoft.Azure.ServiceBus.ReceiveMode receiveMode)
         {
@@ -948,7 +948,7 @@ namespace DurableTask.ServiceBus.Common.Abstraction
                 return new IMessageSession(await this.sessionClient.AcceptMessageSessionAsync(operationTimeout));
             }
             catch (Microsoft.Azure.ServiceBus.ServiceBusTimeoutException)
-            { 
+            {
                 return null;
             }
         }
