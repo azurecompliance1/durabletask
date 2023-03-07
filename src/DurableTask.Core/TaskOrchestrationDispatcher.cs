@@ -574,7 +574,6 @@ namespace DurableTask.Core
                 instanceState.Status = runtimeState.Status;
             }
 
-
             await this.orchestrationService.CompleteTaskOrchestrationWorkItemAsync(
                 workItem,
                 runtimeState,

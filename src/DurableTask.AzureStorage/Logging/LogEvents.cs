@@ -2195,7 +2195,8 @@ namespace DurableTask.AzureStorage.Logging
                 string executionId,
                 OrchestrationStatus runtimeStatus,
                 int episode,
-                long latencyMs)
+                long latencyMs,
+                long? sizeInBytes)
             {
                 this.Account = account;
                 this.TaskHub = taskHub;
@@ -2227,6 +2228,9 @@ namespace DurableTask.AzureStorage.Logging
             [StructuredLogField]
             public long LatencyMs { get; }
 
+            [StructuredLogField]
+            public long SizeInBytes { get; }
+
             public override EventId EventId => new EventId(
                 EventIds.InstanceStatusUpdate,
                 nameof(EventIds.InstanceStatusUpdate));
@@ -2245,7 +2249,8 @@ namespace DurableTask.AzureStorage.Logging
                 this.Episode,
                 this.LatencyMs,
                 Utils.AppName,
-                Utils.ExtensionVersion);
+                Utils.ExtensionVersion,
+                this.SizeInBytes);
         }
 
         internal class FetchedInstanceStatus : StructuredLogEvent, IEventSourceEvent
@@ -2651,6 +2656,95 @@ namespace DurableTask.AzureStorage.Logging
                 this.RequestCount,
                 this.InstanceCount,
                 this.LatencyMs,
+                Utils.AppName,
+                Utils.ExtensionVersion);
+        }
+
+        internal class ThrottlingOrchestrationHistoryLoad : StructuredLogEvent, IEventSourceEvent
+        {
+            public ThrottlingOrchestrationHistoryLoad(
+                string account,
+                string taskHub,
+                string instanceId,
+                string executionId,
+                string details)
+            {
+                this.Account = account;
+                this.TaskHub = taskHub;
+                this.InstanceId = instanceId;
+                this.ExecutionId = executionId;
+                this.Details = details;
+            }
+
+            [StructuredLogField]
+            public string Account { get; }
+
+            [StructuredLogField]
+            public string TaskHub { get; }
+
+            [StructuredLogField]
+            public string InstanceId { get; }
+
+            [StructuredLogField]
+            public string ExecutionId { get; }
+
+            [StructuredLogField]
+            public string Details { get; }
+
+            public override EventId EventId => new EventId(
+                EventIds.ThrottlingOrchestrationHistoryLoad,
+                nameof(EventIds.ThrottlingOrchestrationHistoryLoad));
+
+            public override LogLevel Level => LogLevel.Information;
+
+            protected override string CreateLogMessage() =>
+                $"Throttling orchestration history load for instance {this.InstanceId}: {this.Details})";
+
+            void IEventSourceEvent.WriteEventSource() => AnalyticsEventSource.Log.ThrottlingOrchestrationHistoryLoad(
+                this.Account,
+                this.TaskHub,
+                this.InstanceId,
+                this.ExecutionId,
+                this.Details,
+                Utils.AppName,
+                Utils.ExtensionVersion);
+        }
+
+        internal class OrchestrationMemoryManagerInfo : StructuredLogEvent, IEventSourceEvent
+        {
+            private string account;
+            private string taskHub;
+            private string workerName;
+            private string details;
+
+            public OrchestrationMemoryManagerInfo(string account, string taskHub, string details)
+            {
+                this.Account = account;
+                this.TaskHub = taskHub;
+                this.Details = details;
+            }
+
+            [StructuredLogField]
+            public string Account { get; }
+
+            [StructuredLogField]
+            public string TaskHub { get; }
+
+            [StructuredLogField]
+            public string Details { get; }
+
+            public override EventId EventId => new EventId(
+                EventIds.OrchestrationMemoryManagerInfo,
+                nameof(EventIds.OrchestrationMemoryManagerInfo));
+
+            public override LogLevel Level => LogLevel.Information;
+
+            protected override string CreateLogMessage() => this.Details;
+
+            void IEventSourceEvent.WriteEventSource() => AnalyticsEventSource.Log.OrchestrationMemoryManagerInfo(
+                this.Account,
+                this.TaskHub,
+                this.Details,
                 Utils.AppName,
                 Utils.ExtensionVersion);
         }

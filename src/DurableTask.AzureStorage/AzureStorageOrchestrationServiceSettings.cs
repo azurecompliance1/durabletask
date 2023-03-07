@@ -251,6 +251,21 @@ namespace DurableTask.AzureStorage
         public TimeSpan StorageRequestsTimeoutCooldown { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
+        /// Enables OrchestrationHistoryLoadThrottle feature, which attempts to throttle Orchestration history load when non enough memory is available.
+        /// </summary>
+        public bool UseOrchestrationHistoryLoadThrottle { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the total process memory in MBytes when using OrchestrationHistoryLoadThrottle.
+        /// </summary>
+        public int TotalProcessMemoryMBytes { get; set; } = (int)1.5 * 1024;
+
+        /// <summary>
+        /// Gets or sets the memory buffer in MBytes when using OrchestrationHistoryLoadThrottle, representing additional memory needed in an application at a given time when loading orchestration histories.
+        /// </summary>
+        public int MemoryBufferMBytes { get; set; } = (int)0.25 * 1024;
+
+        /// <summary>
         /// Returns bool indicating is the TrackingStoreStorageAccount has been set.
         /// </summary>
         public bool HasTrackingStoreStorageAccount => this.TrackingStoreStorageAccountDetails != null;

@@ -919,7 +919,8 @@ namespace DurableTask.AzureStorage
             int Episode,
             long LatencyMs,
             string AppName,
-            string ExtensionVersion)
+            string ExtensionVersion,
+            long? SizeInBytes)
         {
             this.WriteEvent(
                 EventIds.InstanceStatusUpdate,
@@ -931,7 +932,8 @@ namespace DurableTask.AzureStorage
                 Episode,
                 LatencyMs,
                 AppName,
-                ExtensionVersion);
+                ExtensionVersion,
+                SizeInBytes);
         }
 
         [Event(EventIds.FetchedInstanceStatus, Level = EventLevel.Informational, Version = 3)]
@@ -1081,6 +1083,44 @@ namespace DurableTask.AzureStorage
                 LatencyMs,
                 AppName,
                 ExtensionVersion);
+        }
+
+        [Event(EventIds.ThrottlingOrchestrationHistoryLoad, Level = EventLevel.Informational, Version = 1)]
+        internal void ThrottlingOrchestrationHistoryLoad(
+            string Account, 
+            string TaskHub, 
+            string InstanceId, 
+            string ExecutionId, 
+            string Details, 
+            string AppName, 
+            string ExtensionVersion)
+        {
+            this.WriteEvent(
+                EventIds.ThrottlingOrchestrationHistoryLoad,
+                Account,
+                TaskHub,
+                InstanceId ?? string.Empty,
+                ExecutionId ?? string.Empty,
+                Details,
+                AppName,
+                ExtensionVersion);
+        }
+
+        [Event(EventIds.OrchestrationMemoryManagerInfo, Level = EventLevel.Informational, Version = 1)]
+        internal void OrchestrationMemoryManagerInfo(
+            string Account,
+            string TaskHub,
+            string Details,
+            string AppName,
+            string ExtensionVersion)
+        {
+            this.WriteEvent(
+               EventIds.OrchestrationMemoryManagerInfo,
+               Account,
+               TaskHub,
+               Details,
+               AppName,
+               ExtensionVersion);
         }
 
         // Specifying tasks is necessary when using WriteEventWithRelatedActivityId

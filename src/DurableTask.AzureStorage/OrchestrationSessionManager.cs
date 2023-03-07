@@ -14,6 +14,7 @@
 namespace DurableTask.AzureStorage
 {
     using System;
+    using System.Buffers;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
@@ -40,12 +41,14 @@ namespace DurableTask.AzureStorage
         readonly AzureStorageOrchestrationServiceStats stats;
         readonly ITrackingStore trackingStore;
         readonly DispatchQueue fetchRuntimeStateQueue;
+        readonly OrchestrationMemoryManager memoryManager;
 
         public OrchestrationSessionManager(
             string queueAccountName,
             AzureStorageOrchestrationServiceSettings settings,
             AzureStorageOrchestrationServiceStats stats,
-            ITrackingStore trackingStore)
+            ITrackingStore trackingStore,
+            OrchestrationMemoryManager memoryManager)
         {
             this.storageAccountName = queueAccountName;
             this.settings = settings;
@@ -53,6 +56,8 @@ namespace DurableTask.AzureStorage
             this.trackingStore = trackingStore;
 
             this.fetchRuntimeStateQueue = new DispatchQueue(this.settings.MaxStorageOperationConcurrency);
+
+            this.memoryManager = memoryManager;
         }
 
         internal IEnumerable<ControlQueue> Queues => this.ownedControlQueues.Values;
@@ -470,10 +475,10 @@ namespace DurableTask.AzureStorage
             {
                 if (batch.OrchestrationState == null)
                 {
-                    OrchestrationHistory history = await this.trackingStore.GetHistoryEventsAsync(
-                       batch.OrchestrationInstanceId,
-                       batch.OrchestrationExecutionId,
-                       cancellationToken);
+                    OrchestrationHistory history = await this.memoryManager.GetHistoryEventsAsync(this.trackingStore,
+                            batch.OrchestrationInstanceId,
+                            batch.OrchestrationExecutionId,
+                            cancellationToken);
 
                     batch.OrchestrationState = new OrchestrationRuntimeState(history.Events);
                     batch.ETag = history.ETag;

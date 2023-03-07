@@ -496,6 +496,10 @@ namespace DurableTask.AzureStorage.Tracking
                         {
                             property.SetValue(orchestrationInstanceStatus, value.Int32Value);
                         }
+                        else if (property.PropertyType == typeof(long) || property.PropertyType == typeof(long?))
+                        {
+                            property.SetValue(orchestrationInstanceStatus, value.Int64Value);
+                        }
                         else
                         {
                             property.SetValue(orchestrationInstanceStatus, value.StringValue);
@@ -532,6 +536,7 @@ namespace DurableTask.AzureStorage.Tracking
             orchestrationState.Output = orchestrationInstanceStatus.Output;
             orchestrationState.ScheduledStartTime = orchestrationInstanceStatus.ScheduledStartTime;
             orchestrationState.Generation = orchestrationInstanceStatus.Generation;
+            orchestrationState.Size = orchestrationInstanceStatus.Size;
 
             if (this.settings.FetchLargeMessageDataEnabled)
             {
@@ -838,6 +843,7 @@ namespace DurableTask.AzureStorage.Tracking
                     ["ScheduledStartTime"] = new EntityProperty(executionStartedEvent.ScheduledStartTime),
                     ["ExecutionId"] = new EntityProperty(executionStartedEvent.OrchestrationInstance.ExecutionId),
                     ["Generation"] = new EntityProperty(executionStartedEvent.Generation),
+                    ["Size"] = new EntityProperty((long)0),
                 }
             };
 
@@ -877,7 +883,8 @@ namespace DurableTask.AzureStorage.Tracking
                 executionStartedEvent.OrchestrationInstance.ExecutionId,
                 OrchestrationStatus.Pending,
                 currentEpisodeNumber,
-                stopwatch.ElapsedMilliseconds);
+                stopwatch.ElapsedMilliseconds,
+                0);
 
             return true;
         }
@@ -910,7 +917,8 @@ namespace DurableTask.AzureStorage.Tracking
                 string.Empty,
                 OrchestrationStatus.Pending,
                 currentEpisodeNumber,
-                stopwatch.ElapsedMilliseconds);
+                stopwatch.ElapsedMilliseconds,
+                null);
         }
 
 
@@ -951,6 +959,7 @@ namespace DurableTask.AzureStorage.Tracking
                     ["CustomStatus"] = new EntityProperty(newRuntimeState.Status ?? "null"),
                     ["ExecutionId"] = new EntityProperty(executionId),
                     ["LastUpdatedTime"] = new EntityProperty(newEvents.Last().Timestamp),
+                    ["Size"] = new EntityProperty(newRuntimeState.Size),
                 }
             };
            
@@ -1106,7 +1115,8 @@ namespace DurableTask.AzureStorage.Tracking
                 executionId,
                 runtimeStatus,
                 episodeNumber,
-                orchestrationInstanceUpdateStopwatch.ElapsedMilliseconds);
+                orchestrationInstanceUpdateStopwatch.ElapsedMilliseconds,
+                newRuntimeState.Size);
 
             return eTagValue;
         }

@@ -217,6 +217,7 @@ namespace DurableTask.Core
             }
 
             Events.Add(historyEvent);
+            this.Size += SizeUtils.GetEstimatedSize(historyEvent);
 
             if (isNewEvent)
             {

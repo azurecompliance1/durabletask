@@ -14,6 +14,7 @@
 namespace DurableTask.AzureStorage.Logging
 {
     using System;
+    using System.Security.Principal;
     using DurableTask.Core;
     using DurableTask.Core.Logging;
     using Microsoft.Extensions.Logging;
@@ -722,7 +723,8 @@ namespace DurableTask.AzureStorage.Logging
             string executionId,
             OrchestrationStatus runtimeStatus,
             int episode,
-            long latencyMs)
+            long latencyMs,
+            long? sizeInBytes)
         {
             var logEvent = new LogEvents.InstanceStatusUpdate(
                 account,
@@ -731,7 +733,8 @@ namespace DurableTask.AzureStorage.Logging
                 executionId,
                 runtimeStatus,
                 episode,
-                latencyMs);
+                latencyMs,
+                sizeInBytes);
             this.WriteStructuredLog(logEvent);
         }
 
@@ -867,9 +870,37 @@ namespace DurableTask.AzureStorage.Logging
             this.WriteStructuredLog(logEvent);
         }
 
+        internal void ThrottlingOrchestrationHistoryLoad(
+            string account,
+            string taskHub,
+            string instanceId,
+            string executionId,
+            string details)
+        {
+            var logEvent = new LogEvents.ThrottlingOrchestrationHistoryLoad(
+                account,
+                taskHub,
+                instanceId,
+                executionId,
+                details);
+            this.WriteStructuredLog(logEvent);
+        }
+
         void WriteStructuredLog(ILogEvent logEvent, Exception exception = null)
         {
             LoggingExtensions.LogDurableEvent(this.log, logEvent, exception);
+        }
+
+        internal void OrchestrationMemoryManagerInfo(
+            string account,
+            string taskHub,
+            string details)
+        {
+            var logEvent = new LogEvents.OrchestrationMemoryManagerInfo(
+                account,
+                taskHub,
+                details);
+            this.WriteStructuredLog(logEvent);
         }
     }
 }
