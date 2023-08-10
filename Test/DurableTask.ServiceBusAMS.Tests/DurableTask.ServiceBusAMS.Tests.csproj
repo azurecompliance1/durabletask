@@ -1,0 +1,76 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory),DurableTask.sln))\tools\DurableTask.props" />
+  <PropertyGroup>
+    <TargetFrameworks>net462</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net472|AnyCPU'">
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net472|AnyCPU'">
+    <TreatWarningsAsErrors>False</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" version="1.9.71" />
+    <PackageReference Include="EnterpriseLibrary.SemanticLogging" version="2.0.1406.1" />
+    <PackageReference Include="ImpromptuInterface" version="6.2.2" />
+    <PackageReference Include="Microsoft.Azure.KeyVault.Core" version="1.0.0" />
+    <PackageReference Include="Microsoft.Data.Edm" version="5.8.5" />
+    <PackageReference Include="Microsoft.Data.OData" version="5.8.5" />
+    <PackageReference Include="Microsoft.Data.Services.Client" version="5.8.5" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.0" />
+    <PackageReference Include="Microsoft.Tpl.Dataflow" version="4.5.24" />
+    <PackageReference Include="Microsoft.WindowsAzure.ConfigurationManager" version="3.2.1" />
+    <PackageReference Include="MSTest.TestAdapter" Version="1.4.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="1.4.0" />
+    <PackageReference Include="Newtonsoft.Json" version="7.0.1" />
+    <PackageReference Include="System.Spatial" version="5.8.5" />
+    <!-- <PackageReference Include="Azure.Messaging.ServiceBus" version="7.13.1" /> -->
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.16.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.14.0" />
+    <PackageReference Include="Azure.Storage.Common" Version="12.15.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DurableTask.Core\DurableTask.Core.csproj" />
+    <ProjectReference Include="..\..\src\DurableTask.ServiceBusAMS\DurableTask.ServiceBusAMS.csproj" />
+    <ProjectReference Include="..\DurableTask.Test.Orchestrations\DurableTask.Test.Orchestrations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="TestData\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+    <Reference Include="System.Configuration" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+    <None Update="testhost.dll.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="app.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
