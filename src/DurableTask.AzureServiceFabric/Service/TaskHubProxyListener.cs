@@ -21,6 +21,7 @@ namespace DurableTask.AzureServiceFabric.Service
     using System.Net.Sockets;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.IO;
 
     using DurableTask.Core;
     using DurableTask.AzureServiceFabric;
@@ -28,6 +29,11 @@ namespace DurableTask.AzureServiceFabric.Service
 
     using Microsoft.ServiceFabric.Services.Communication.Runtime;
     using Microsoft.ServiceFabric.Services.Runtime;
+    using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Extensions.Hosting;
+    using System.Security.Cryptography.X509Certificates;
+    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Delegate invoked before starting the worker to register orchestrations.
@@ -57,6 +63,7 @@ namespace DurableTask.AzureServiceFabric.Service
     {
         readonly RegisterOrchestrations registerOrchestrations;
         readonly RegisterOrchestrations2 registerOrchestrations2;
+        readonly Action<IServiceCollection> services;
         readonly FabricOrchestrationProviderSettings fabricOrchestrationProviderSettings;
         FabricOrchestrationProviderFactory fabricProviderFactory;
         FabricOrchestrationProvider fabricOrchestrationProvider;
@@ -91,6 +98,24 @@ namespace DurableTask.AzureServiceFabric.Service
                 RegisterOrchestrations registerOrchestrations,
                 bool enableHttps = true)
         {
+            this.fabricOrchestrationProviderSettings = fabricOrchestrationProviderSettings ?? throw new ArgumentNullException(nameof(fabricOrchestrationProviderSettings));
+            this.registerOrchestrations = registerOrchestrations ?? throw new ArgumentNullException(nameof(registerOrchestrations));
+            this.enableHttps = enableHttps;
+        }
+
+        /// <summary>
+        /// Creates instance of <see cref="TaskHubProxyListener"/>
+        /// </summary>
+        /// <param name="services">Method of IServiceCollection.</param>
+        /// <param name="fabricOrchestrationProviderSettings">instance of <see cref="FabricOrchestrationProviderSettings"/></param>
+        /// <param name="registerOrchestrations">Delegate invoked before starting the worker.</param>
+        /// <param name="enableHttps">Whether to enable https or http</param>
+        public TaskHubProxyListener(Action<IServiceCollection> services,
+                FabricOrchestrationProviderSettings fabricOrchestrationProviderSettings,
+                RegisterOrchestrations registerOrchestrations,
+                bool enableHttps = true)
+        {
+            this.services = services;
             this.fabricOrchestrationProviderSettings = fabricOrchestrationProviderSettings ?? throw new ArgumentNullException(nameof(fabricOrchestrationProviderSettings));
             this.registerOrchestrations = registerOrchestrations ?? throw new ArgumentNullException(nameof(registerOrchestrations));
             this.enableHttps = enableHttps;
@@ -149,6 +174,7 @@ namespace DurableTask.AzureServiceFabric.Service
         public ServiceReplicaListener CreateServiceReplicaListener()
         {
             return new ServiceReplicaListener(context =>
+            new KestrelCommunicationListener(context, (url, listener) =>
             {
                 var serviceEndpoint = context.CodePackageActivationContext.GetEndpoint(Constants.TaskHubProxyListenerEndpointName);
                 string ipAddress = context.NodeContext.IPAddressOrFQDN;
@@ -161,10 +187,51 @@ namespace DurableTask.AzureServiceFabric.Service
 
                 EnsureFabricOrchestrationProviderIsInitialized();
                 string protocol = this.enableHttps ? "https" : "http";
-                string listeningAddress = string.Format(CultureInfo.InvariantCulture, "{0}://{1}:{2}/{3}/dtfx/", protocol, ipAddress, serviceEndpoint.Port, context.PartitionId);
+                string listeningAddress = string.Format(CultureInfo.InvariantCulture, "{0}://{1}:{2}/", protocol, ipAddress, serviceEndpoint.Port);
 
-                return new OwinCommunicationListener(new Startup(listeningAddress, this.fabricOrchestrationProvider));
-            }, Constants.TaskHubProxyServiceName);
+                return new WebHostBuilder().UseKestrel(opt =>
+                {
+                    opt.ConfigureHttpsDefaults((httpConAdaptOption) =>
+                    {
+                        httpConAdaptOption.ServerCertificate = FindMatchingCertificateBySubject(this.fabricOrchestrationProviderSettings.SSLSubjectName);
+                        httpConAdaptOption.AllowAnyClientCertificate();
+                    });
+
+                })
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseUrls(listeningAddress)
+                .UseStartup(x => new Startup(listeningAddress, this.fabricOrchestrationProvider))
+                .ConfigureServices(services => this.services?.Invoke(services))
+                // The UseUniqueServiceUrl option injects "/partitionId/instanceId"
+                // to the end of the service fabric service endpoint as a unique identifier
+                // Example Endpoint: https://{MachineName}:{port}/{partitionId}/{instanceId}
+                .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.UseUniqueServiceUrl)
+                .Build();
+            }), Constants.TaskHubProxyServiceName);
+        }
+
+        private static X509Certificate2 FindMatchingCertificateBySubject(string subjectCommonName = null)
+        {
+            using var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+            store.Open(OpenFlags.ReadOnly);
+            var certCollection = store.Certificates;
+            var matchedCerts = new X509Certificate2Collection();
+
+            foreach (var enumCert in certCollection)
+            {
+                if (StringComparer.OrdinalIgnoreCase.Equals(subjectCommonName, enumCert.GetNameInfo(X509NameType.SimpleName, forIssuer: false)))
+                {
+                    matchedCerts.Add(enumCert);
+                }
+            }
+
+            if (matchedCerts.Count == 0)
+            {
+                throw new Exception($"Could not find a match for a certificate with the subject 'CN={subjectCommonName}'");
+            }
+
+            return matchedCerts[0];
+
         }
 
         /// <inheritdoc />
@@ -207,6 +274,7 @@ namespace DurableTask.AzureServiceFabric.Service
                 await this.worker.StartAsync();
 
                 this.worker.TaskActivityDispatcher.IncludeDetails = true;
+                this.worker.TaskOrchestrationDispatcher.IncludeDetails = true;
             }
             catch (Exception exception)
             {
