@@ -2047,6 +2047,7 @@ namespace DurableTask.AzureStorage
                 TaskHubNames = condition.TaskHubNames,
                 InstanceIdPrefix = condition.InstanceIdPrefix,
                 FetchInput = condition.FetchInputsAndOutputs,
+                SortOrder = condition.SortOrder,
             };
         }
 
