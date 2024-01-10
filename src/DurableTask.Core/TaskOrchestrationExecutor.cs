@@ -24,6 +24,7 @@ namespace DurableTask.Core
     using DurableTask.Core.Entities;
     using DurableTask.Core.Exceptions;
     using DurableTask.Core.History;
+    using DurableTask.Core.Middleware;
 
     /// <summary>
     /// Utility for executing task orchestrators.
@@ -51,15 +52,40 @@ namespace DurableTask.Core
             BehaviorOnContinueAsNew eventBehaviourForContinueAsNew,
             TaskOrchestrationEntityParameters? entityParameters,
             ErrorPropagationMode errorPropagationMode = ErrorPropagationMode.SerializeExceptions)
+            : this(CreateProperties(orchestrationRuntimeState, taskOrchestration), eventBehaviourForContinueAsNew, errorPropagationMode)
         {
+        }
+
+        private static IContextProperties CreateProperties(OrchestrationRuntimeState orchestrationRuntimeState, TaskOrchestration taskOrchestration)
+        {
+            var properties = new PropertiesDictionary();
+
+            properties.SetProperty(orchestrationRuntimeState);
+            properties.SetProperty(taskOrchestration);
+
+            return properties;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TaskOrchestrationExecutor"/> class.
+        /// </summary>
+        /// <param name="properties"></param>
+        /// <param name="eventBehaviourForContinueAsNew"></param>
+        /// <param name="errorPropagationMode"></param>
+        public TaskOrchestrationExecutor(
+            IContextProperties properties,
+            BehaviorOnContinueAsNew eventBehaviourForContinueAsNew,
+            ErrorPropagationMode errorPropagationMode = ErrorPropagationMode.SerializeExceptions)
+        {
+            this.orchestrationRuntimeState = properties.GetRequiredProperty<OrchestrationRuntimeState>();
+            this.taskOrchestration = properties.GetRequiredProperty<TaskOrchestration>();
             this.decisionScheduler = new SynchronousTaskScheduler();
             this.context = new TaskOrchestrationContext(
                 orchestrationRuntimeState.OrchestrationInstance,
+                properties,
                 this.decisionScheduler,
                 entityParameters,
                 errorPropagationMode);
-            this.orchestrationRuntimeState = orchestrationRuntimeState;
-            this.taskOrchestration = taskOrchestration;
             this.skipCarryOverEvents = eventBehaviourForContinueAsNew == BehaviorOnContinueAsNew.Ignore;
         }
 
@@ -164,7 +190,7 @@ namespace DurableTask.Core
                                     // Let this exception propagate out to be handled by the dispatcher
                                     ExceptionDispatchInfo.Capture(exception).Throw();
                                 }
-                                
+
                                 this.context.FailOrchestration(exception);
                             }
                             else

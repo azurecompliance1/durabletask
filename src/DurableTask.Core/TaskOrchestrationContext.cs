@@ -24,7 +24,6 @@ namespace DurableTask.Core
     using DurableTask.Core.Entities;
     using DurableTask.Core.Exceptions;
     using DurableTask.Core.History;
-    using DurableTask.Core.Serializing;
     using DurableTask.Core.Tracing;
 
     internal class TaskOrchestrationContext : OrchestrationContext
@@ -45,8 +44,11 @@ namespace DurableTask.Core
             continueAsNew.CarryoverEvents.Add(he);
         }
 
+        public override IDictionary<string, object> Properties { get; }
+
         public TaskOrchestrationContext(
             OrchestrationInstance orchestrationInstance,
+            IContextProperties properties,
             TaskScheduler taskScheduler,
             TaskOrchestrationEntityParameters entityParameters = null,
             ErrorPropagationMode errorPropagationMode = ErrorPropagationMode.SerializeExceptions)
@@ -56,13 +58,12 @@ namespace DurableTask.Core
             this.openTasks = new Dictionary<int, OpenTaskInfo>();
             this.orchestratorActionsMap = new SortedDictionary<int, OrchestratorAction>();
             this.idCounter = 0;
-            this.MessageDataConverter = JsonDataConverter.Default;
-            this.ErrorDataConverter = JsonDataConverter.Default;
             OrchestrationInstance = orchestrationInstance;
             IsReplaying = false;
             this.EntityParameters = entityParameters;
             ErrorPropagationMode = errorPropagationMode;
             this.eventsWhileSuspended = new Queue<HistoryEvent>();
+            Properties = properties.Properties;
         }
 
         public IEnumerable<OrchestratorAction> OrchestratorActions => this.orchestratorActionsMap.Values;

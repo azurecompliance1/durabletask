@@ -36,6 +36,7 @@ namespace DurableTask.Core
     {
         static readonly Task CompletedTask = Task.FromResult(0);
 
+        readonly JsonDataConverter dataConverter;
         readonly INameVersionObjectManager<TaskOrchestration> objectManager;
         readonly IOrchestrationService orchestrationService;
         readonly WorkItemDispatcher<TaskOrchestrationWorkItem> dispatcher;
@@ -51,12 +52,14 @@ namespace DurableTask.Core
             IOrchestrationService orchestrationService,
             INameVersionObjectManager<TaskOrchestration> objectManager,
             DispatchMiddlewarePipeline dispatchPipeline,
+            JsonDataConverter dataConverter,
             LogHelper logHelper,
             ErrorPropagationMode errorPropagationMode)
         {
             this.objectManager = objectManager ?? throw new ArgumentNullException(nameof(objectManager));
             this.orchestrationService = orchestrationService ?? throw new ArgumentNullException(nameof(orchestrationService));
             this.dispatchPipeline = dispatchPipeline ?? throw new ArgumentNullException(nameof(dispatchPipeline));
+            this.dataConverter = dataConverter;
             this.logHelper = logHelper ?? throw new ArgumentNullException(nameof(logHelper));
             this.errorPropagationMode = errorPropagationMode;
             this.entityOrchestrationService = orchestrationService as IEntityOrchestrationService;
@@ -679,6 +682,8 @@ namespace DurableTask.Core
             TaskOrchestration? taskOrchestration = this.objectManager.GetObject(runtimeState.Name, runtimeState.Version!);
 
             var dispatchContext = new DispatchMiddlewareContext();
+            dispatchContext.SetProperty(dataConverter);
+            dispatchContext.SetProperty<DataConverter>(dataConverter);
             dispatchContext.SetProperty(runtimeState.OrchestrationInstance);
             dispatchContext.SetProperty(taskOrchestration);
             dispatchContext.SetProperty(runtimeState);
@@ -688,7 +693,7 @@ namespace DurableTask.Core
 
             TaskOrchestrationExecutor? executor = null;
 
-            await this.dispatchPipeline.RunAsync(dispatchContext, _ =>
+            await this.dispatchPipeline.RunAsync(dispatchContext, dispatchContext =>
             {
                 // Check to see if the custom middleware intercepted and substituted the orchestration execution
                 // with its own execution behavior, providing us with the end results. If so, we can terminate
@@ -699,7 +704,7 @@ namespace DurableTask.Core
                     return CompletedTask;
                 }
 
-                if (taskOrchestration == null)
+                if (dispatchContext.GetProperty<TaskOrchestration>() is null)
                 {
                     throw TraceHelper.TraceExceptionInstance(
                         TraceEventType.Error,
@@ -709,8 +714,7 @@ namespace DurableTask.Core
                 }
 
                 executor = new TaskOrchestrationExecutor(
-                    runtimeState,
-                    taskOrchestration,
+                    dispatchContext,
                     this.orchestrationService.EventBehaviourForContinueAsNew,
                     this.entityParameters,
                     this.errorPropagationMode);

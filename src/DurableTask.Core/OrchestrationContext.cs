@@ -24,12 +24,15 @@ namespace DurableTask.Core
     /// <summary>
     /// Context for an orchestration containing the instance, replay status, orchestration methods and proxy methods
     /// </summary>
-    public abstract class OrchestrationContext
+    public abstract class OrchestrationContext : IContextProperties
     {
         /// <summary>
         /// Used in generating proxy interfaces and classes.
         /// </summary>
         private static readonly ProxyGenerator ProxyGenerator = new ProxyGenerator();
+
+        /// <inheritdoc/>
+        public virtual IDictionary<string, object> Properties { get; } = new Dictionary<string, object>();
 
         /// <summary>
         /// Thread-static variable used to signal whether the calling thread is the orchestrator thread.
@@ -41,12 +44,20 @@ namespace DurableTask.Core
         /// <summary>
         /// JsonDataConverter for message serialization settings
         /// </summary>
-        public JsonDataConverter MessageDataConverter { get; set; }
+        public JsonDataConverter MessageDataConverter
+        {
+            get => this.GetProperty<JsonDataConverter>(nameof(MessageDataConverter)) ?? this.GetProperty<JsonDataConverter>() ?? JsonDataConverter.Default;
+            set => this.SetProperty<JsonDataConverter>(nameof(MessageDataConverter), value);
+        }
 
         /// <summary>
         /// JsonDataConverter for error serialization settings
         /// </summary>
-        public JsonDataConverter ErrorDataConverter { get; set; }
+        public JsonDataConverter ErrorDataConverter
+        {
+            get => this.GetProperty<JsonDataConverter>(nameof(ErrorDataConverter)) ?? this.GetProperty<JsonDataConverter>() ?? JsonDataConverter.Default;
+            set => this.SetProperty<JsonDataConverter>(nameof(ErrorDataConverter), value);
+        }
 
         /// <summary>
         /// Instance of the currently executing orchestration
