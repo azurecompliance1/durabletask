@@ -54,7 +54,6 @@ namespace DurableTask.Core.Common
         private static readonly JsonSerializerSettings ObjectJsonSettings = new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.All,
-
 #if NETSTANDARD2_0
             SerializationBinder = new PackageUpgradeSerializationBinder()
 #else
